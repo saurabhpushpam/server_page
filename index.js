@@ -29,35 +29,33 @@ app.get('/', (req, res) => {
 
 
   res.send(`
-    document.addEventListener("DOMContentLoaded", async () => {
-      const urlParts = window.location.pathname.split("/");
-      const handle = urlParts[urlParts.length - 1];
-  
-      const query = \`
-        query getProductByHandle($handle: String!) {
-          productByHandle(handle: $handle) {
-            title
-          }
+  document.addEventListener("DOMContentLoaded", async () => {
+    const urlParts = window.location.pathname.split("/");
+    const handle = urlParts[urlParts.length - 1];
+
+    const query = \`
+      query getProductByHandle($handle: String!) {
+        productByHandle(handle: $handle) {
+          title
         }
-      \`;
-  
-      const response = await fetch("/api/graphql", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Shopify-Storefront-Access-Token": "shpua_f467a9bdebce1123d2cef6ab05d54d39", 
-        },
-        body: JSON.stringify({ query, variables: { handle } }),
-      });
-  
-      const data = await response.json();
-      const productTitle = data.data.productByHandle ? data.data.productByHandle.title : "Product not found";
-  
-      const titleElement = document.createElement("h1");
-      titleElement.textContent = productTitle;
-      document.body.prepend(titleElement); 
+      }
+    \`;
+
+    const response = await fetch("/api/graphql", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Shopify-Storefront-Access-Token": "shpua_f467a9bdebce1123d2cef6ab05d54d39"
+      },
+      body: JSON.stringify({ query, variables: { handle } }),
     });
-  `)
+
+    const data = await response.json();
+    const productTitle = data.data.productByHandle ? data.data.productByHandle.title : "Product not found";
+
+    alert(productTitle);
+  });
+`);
 });
 
 
