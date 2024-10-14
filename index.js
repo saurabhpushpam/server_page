@@ -32,6 +32,7 @@ app.get('/', (req, res) => {
   res.send(`
     
     function displayProducts() {
+    alert("Hello");
    if (window.location.pathname.includes('/products/')) {
     
     const urlPath = window.location.pathname;
