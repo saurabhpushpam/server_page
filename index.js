@@ -58,6 +58,28 @@ app.get('/', (req, res) => {
   // `);
   // });
 
+
+  app.get('/static/product-title-script.js', (req, res) => {
+    res.send(`
+      document.addEventListener("DOMContentLoaded", async () => {
+        const urlParts = window.location.pathname.split("/");
+        if (urlParts[1] === "products") {
+          const handle = urlParts[urlParts.length - 1];
+          
+          try {
+            const response = await fetch('/admin/api/products/' + handle);
+            const product = await response.json();
+            alert(product.title || "Product not found");
+          } catch (error) {
+            console.error("Error fetching product title:", error);
+            alert("Error fetching product title");
+          }
+        }
+      });
+    `);
+  });
+
+
   res.send(`alert('hello')`)
 });;
 
