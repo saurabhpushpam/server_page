@@ -31,7 +31,6 @@ app.get('/', (req, res) => {
 
   res.send(`
     
-  <script>
     document.addEventListener('DOMContentLoaded', function () {
         const productTitleElements = document.querySelectorAll('.product-item .product-title');
 
@@ -46,7 +45,6 @@ app.get('/', (req, res) => {
         }
      
     });
-  </script>
 
   `)
 });
