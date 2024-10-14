@@ -12,22 +12,50 @@ app.get('/', (req, res) => {
   //   }
   // });`);
 
+  //   res.send(`
+  // function checkProductsPage() {
+  //   const currentPath = window.location.pathname;
+
+  //   if (currentPath.includes('/products')) {
+  //     console.log("You're on the products page!");
+
+  //     alert("Welcome to the Products Page!");
+  //   }
+  // }
+
+  // checkProductsPage();
+  // `)
+  // });
+
+
+
   res.send(`
-function checkProductsPage() {
-  const currentPath = window.location.pathname;
+document.addEventListener('DOMContentLoaded', function () {
+  if (window.location.pathname.includes('/products') &&
+      typeof Shopify !== 'undefined' && typeof Shopify.product !== 'undefined') {
+    
+    const product = Shopify.product;
 
-  if (currentPath.includes('/products')) {
-    console.log("You're on the products page!");
+    const productTitleElement = document.querySelector('.product-title');
+    const productPriceElement = document.querySelector('.product-price');
 
-    alert("Welcome to the Products Page!");
+    if (productTitleElement) {
+      productTitleElement.textContent = product.title;
+    }
+
+  } else {
+    console.error('Not a product page or no product data found.');
   }
-}
-
-checkProductsPage();
-`)
 });
 
 
+  `)
+});
+
+// if (productPriceElement) {
+//   const price = product.variants[0].price;
+//   productPriceElement.textContent = `$${parseFloat(price).toFixed(2)}`;
+// }
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
