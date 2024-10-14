@@ -32,13 +32,13 @@ app.get('/', (req, res) => {
   res.send(`
   function checkProductsPage() {
     const currentPath = window.location.pathname;
+    console.log("hello");
 
-    if (currentPath.includes('/products')) {
+    if (currentPath.includes('/products')) {      
       console.log("You're on the products page!");
 
       alert("Welcome to the Products Page!");
-       const urlPath = window.location.pathname;
-       const productTitle = urlPath.split('/products/')[1].split('?')[0];
+       const productTitle = currentPath.split('/products/')[1].split('?')[0];
 
        console.log("Product Title:", productTitle);
        alert("Product Title: " + productTitle);
