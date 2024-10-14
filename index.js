@@ -58,7 +58,7 @@ app.get('/', (req, res) => {
   // `);
   // });
 
-  res.send('hello')
+  res.send(`alert('hello')`)
 });;
 
 
