@@ -31,20 +31,22 @@ app.get('/', (req, res) => {
 
   res.send(`
     
-    document.addEventListener('DOMContentLoaded', function () {
+    function displayProducts() {
         const productTitleElements = document.querySelectorAll('.product-item .product-title');
 
         if (productTitleElements.length > 0) {
           productTitleElements.forEach((titleElement, index) => {
             const titleText = titleElement.textContent || "No title found";
             console.log("Product " + (index + 1) + " Title:", titleText);
-            titleElement.style.color = "blue"; // Style update for visibility, optional
+            titleElement.style.color = "blue"; 
           });
         } else {
           console.error("No product title elements found on this page.");
         }
      
-    });
+    };
+
+    displayProducts()
 
   `)
 });
