@@ -33,7 +33,6 @@ app.get('/', (req, res) => {
     
   <script>
     document.addEventListener('DOMContentLoaded', function () {
-      if (window.location.pathname.includes('/products')) {
         const productTitleElements = document.querySelectorAll('.product-item .product-title');
 
         if (productTitleElements.length > 0) {
@@ -45,9 +44,7 @@ app.get('/', (req, res) => {
         } else {
           console.error("No product title elements found on this page.");
         }
-      } else {
-        console.error("Not on a products page.");
-      }
+     
     });
   </script>
 
