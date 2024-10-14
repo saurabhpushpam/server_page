@@ -12,6 +12,23 @@ app.get('/', (req, res) => {
   //   }
   // });`);
 
+  //   res.send(`
+  //   function checkProductsPage() {
+  //     const currentPath = window.location.pathname;
+
+  //     if (currentPath.includes('/products')) {
+  //       console.log("You're on the products page!");
+
+  //       alert("Welcome to the Products Page!");
+  //     }
+  //   }
+
+  //   checkProductsPage();
+  //   `)
+  // });
+
+
+
   res.send(`
   function checkProductsPage() {
     const currentPath = window.location.pathname;
@@ -20,6 +37,14 @@ app.get('/', (req, res) => {
       console.log("You're on the products page!");
 
       alert("Welcome to the Products Page!");
+       const urlPath = window.location.pathname;
+       const productTitle = urlPath.split('/products/')[1].split('?')[0];
+
+       console.log("Product Title:", productTitle);
+       alert("Product Title: " + productTitle);
+     } else {
+       console.log('Not on a product page.');
+     }
     }
   }
 
