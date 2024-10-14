@@ -12,48 +12,44 @@ app.get('/', (req, res) => {
   //   }
   // });`);
 
-  //   res.send(`
-  // function checkProductsPage() {
-  //   const currentPath = window.location.pathname;
-
-  //   if (currentPath.includes('/products')) {
-  //     console.log("You're on the products page!");
-
-  //     alert("Welcome to the Products Page!");
-  //   }
-  // }
-
-  // checkProductsPage();
-  // `)
-  // });
-
-
-
   res.send(`
-    
-    function displayProducts() {
-    alert("Hello");
-   if (window.location.pathname.includes('/products/')) {
-    
-    const urlPath = window.location.pathname;
-    const productTitle = urlPath.split('/products/')[1].split('?')[0];
-    
-    console.log("Product Title:", productTitle);
-    alert("Product Title: " + productTitle);
-  } else {
-    console.error('Not on a product page.');
+  function checkProductsPage() {
+    const currentPath = window.location.pathname;
+
+    if (currentPath.includes('/products')) {
+      console.log("You're on the products page!");
+
+      alert("Welcome to the Products Page!");
+    }
   }
 
-displayProducts();
-
-
+  checkProductsPage();
   `)
 });
 
-// if (productPriceElement) {
-//   const price = product.variants[0].price;
-//   productPriceElement.textContent = `$${parseFloat(price).toFixed(2)}`;
-// }
+
+
+//   res.send(`
+
+//     function displayProducts() {
+//     alert("Hello");
+//    if (window.location.pathname.includes('/products/')) {
+
+//     const urlPath = window.location.pathname;
+//     const productTitle = urlPath.split('/products/')[1].split('?')[0];
+
+//     console.log("Product Title:", productTitle);
+//     alert("Product Title: " + productTitle);
+//   } else {
+//     console.error('Not on a product page.');
+//   }
+
+// displayProducts();
+
+
+//   `)
+// });
+
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
