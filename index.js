@@ -33,11 +33,10 @@ app.get('/', (req, res) => {
     
     function displayProducts() {
    if (window.location.pathname.includes('/products/')) {
-    // Get the product title from the URL
+    
     const urlPath = window.location.pathname;
     const productTitle = urlPath.split('/products/')[1].split('?')[0];
-
-    // Display the product title in the console and in an alert
+    
     console.log("Product Title:", productTitle);
     alert("Product Title: " + productTitle);
   } else {
