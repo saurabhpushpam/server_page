@@ -32,24 +32,18 @@ app.get('/', (req, res) => {
   res.send(`
     
     function displayProducts() {
-  const productTitleElements = document.querySelectorAll('.product-item .product-title');
+   if (window.location.pathname.includes('/products/')) {
+    // Get the product title from the URL
+    const urlPath = window.location.pathname;
+    const productTitle = urlPath.split('/products/')[1].split('?')[0];
 
-  if (productTitleElements.length > 0) {
-    let titles = ""; 
-
-    productTitleElements.forEach((titleElement, index) => {
-      const titleText = titleElement.textContent || "No title found";
-      console.log(titleText);
-      titles += titleText + "\n"; 
-    });
-
-    alert(titles);
+    // Display the product title in the console and in an alert
+    console.log("Product Title:", productTitle);
+    alert("Product Title: " + productTitle);
   } else {
-    console.error('No product title elements found on this page.');
+    console.error('Not on a product page.');
   }
-}
 
-// Call the function to execute it
 displayProducts();
 
 
