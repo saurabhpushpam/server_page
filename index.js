@@ -73,72 +73,72 @@ app.get('/serve-script/:shop', async (req, res) => {
 
 
 
+app.get("/check-store", async (req, res) => {
+  const { shop } = req.query;
 
+  try {
+    const store = await Store.findOne({ shop });
 
-
-app.get('/serve-script.js', async (req, res) => {
-  const scriptContent = `
-    document.addEventListener("DOMContentLoaded", async () => {
-      // Extract the 'shop' from the current URL
-      const shop = window.location.hostname;
-      
-      // Extract the product handle from the URL if we are on a product page
-      const pathParts = window.location.pathname.split("/");
-      if (pathParts[1] === "products" && pathParts[2]) {
-        const handle = pathParts[2];
-
-        try {
-          // Fetch product data from the server by passing shop and handle
-          const response = await fetch(\`https://your-server-url/serve-script.js?shop=\${shop}&handle=\${handle}\`);
-          const data = await response.json();
-
-          // Show product title in alert if it exists
-          if (data.title) {
-            alert("Product title: " + data.title);
-          } else {
-            alert("Product not found.");
-          }
-        } catch (error) {
-          console.error("Error fetching product data:", error);
-        }
-      }
-    });
-  `;
-
-  // If request contains query params for shop and handle, use them to fetch product details
-  const { shop, handle } = req.query;
-
-  if (shop && handle) {
-    try {
-      // Retrieve the access token from MongoDB
-      const shopData = await Shop.findOne({ shop });
-      if (!shopData) {
-        return res.status(404).json({ message: 'Shop not found' });
-      }
-
-      // Fetch the product details from Shopify
-      const response = await fetch(`https://${shopData.shop}/admin/api/2024-04/products.json?handle=${handle}`, {
-        method: 'GET',
-        headers: {
-          'X-Shopify-Access-Token': shopData.accessToken,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      const data = await response.json();
-      if (data.products && data.products.length > 0) {
-        return res.json({ title: data.products[0].title });
-      } else {
-        return res.status(404).json({ message: 'Product not found' });
-      }
-    } catch (error) {
-      console.error('Error fetching product data:', error);
-      return res.status(500).json({ message: 'Internal Server Error' });
+    if (!store) {
+      return res.status(404).json({ message: "Store not registered." });
     }
-  } else {
-    // Serve the JavaScript content when query parameters are not provided
-    res.setHeader('Content-Type', 'application/javascript');
-    res.send(scriptContent);
+
+    res.json({ accessToken: store.accessToken });
+  } catch (error) {
+    console.error("Error retrieving store data:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+
+
+
+
+document.addEventListener("DOMContentLoaded", async () => {
+  const shop = window.location.hostname; // Store name from URL
+
+  try {
+    // Step 1: Check in MongoDB if the store exists and retrieve its access token
+    const tokenResponse = await fetch(`https://server-page-xo9v.onrender.com/serve-script.js
+/check-store?shop=${shop}`);
+    const tokenData = await tokenResponse.json();
+
+    if (!tokenData || !tokenData.accessToken) {
+      console.warn("Store not registered or access token not found.");
+      return;
+    }
+
+    const accessToken = tokenData.accessToken;
+
+    // Step 2: Check if we are on a product page and extract the product handle
+    const pathParts = window.location.pathname.split("/");
+    if (pathParts[1] === "products" && pathParts[2]) {
+      const handle = pathParts[2];
+
+      // Step 3: Fetch product details using the handle and access token
+      const productResponse = await fetch(
+        `https://${shop}/admin/api/2024-04/products.json?handle=${handle}`,
+        {
+          method: "GET",
+          headers: {
+            "X-Shopify-Access-Token": accessToken,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const productData = await productResponse.json();
+
+      // Step 4: Show product title or "Product not found" alert
+      if (productData.products && productData.products.length > 0) {
+        alert(`Product Title: ${productData.products[0].title}`);
+      } else {
+        alert("Product not found.");
+      }
+    } else {
+      alert("No product found.");
+    }
+  } catch (error) {
+    console.error("Error fetching product data:", error);
   }
 });
 
@@ -206,29 +206,31 @@ app.get('/', (req, res) => {
   // });
 
 
-  app.get('/static/product-title-script.js', (req, res) => {
-    res.send(`
-      document.addEventListener("DOMContentLoaded", async () => {
-        const urlParts = window.location.pathname.split("/");
-        if (urlParts[1] === "products") {
-          const handle = urlParts[urlParts.length - 1];
-          
-          try {
-            const response = await fetch('/admin/api/products/' + handle);
-            const product = await response.json();
-            alert(product.title || "Product not found");
-          } catch (error) {
-            console.error("Error fetching product title:", error);
-            alert("Error fetching product title");
-          }
-        }
-      });
-    `);
-  });
-
 
   res.send(`alert('hello')`)
-});;
+});
+
+
+
+app.get('/static/product-title-script.js', (req, res) => {
+  res.send(`
+    document.addEventListener("DOMContentLoaded", async () => {
+      const urlParts = window.location.pathname.split("/");
+      if (urlParts[1] === "products") {
+        const handle = urlParts[urlParts.length - 1];
+        
+        try {
+          const response = await fetch('/admin/api/products/' + handle);
+          const product = await response.json();
+          alert(product.title || "Product not found");
+        } catch (error) {
+          console.error("Error fetching product title:", error);
+          alert("Error fetching product title");
+        }
+      }
+    });
+  `);
+});
 
 
 
