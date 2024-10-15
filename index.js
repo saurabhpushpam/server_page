@@ -130,11 +130,14 @@ app.get("/server-script.js", (req, res) => {
           const productData = await productResponse.json();
 
           if (productData.products && productData.products.length > 0) {
+          console.log('hello');
             alert(\`Product Title: \${productData.products[0].title}\`);
           } else {
+           console.log('Product not found.');
             alert("Product not found.");
           }
         } else {
+          console.log(no Product found');
           alert("No product found.");
         }
       } catch (error) {
