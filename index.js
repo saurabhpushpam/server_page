@@ -137,7 +137,7 @@ app.get("/server-script.js", (req, res) => {
             alert("Product not found.");
           }
         } else {
-          console.log(no Product found');
+          console.log('no Product found');
           alert("No product found.");
         }
       } catch (error) {
