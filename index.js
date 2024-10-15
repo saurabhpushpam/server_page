@@ -96,14 +96,16 @@ app.get("/check-store", async (req, res) => {
 app.get("/server-script.js", (req, res) => {
   res.set("Content-Type", "application/javascript");
   res.send(`
-
+    async function hello(){
         const shop = window.location.hostname;
       
         alert('helllllllllloooooooooo');
 
-         const tokenResponse = await fetch(\`https://server-page-xo9v.onrender.com/check-store?shop=\${shop}\`);
+         const tokenResponse = fetch(\`https://server-page-xo9v.onrender.com/check-store?shop=\${shop}\`);
        const tokenData = await tokenResponse.json();
        alert(tokenData);
+  }
+       hello();
     `);
 });
 
