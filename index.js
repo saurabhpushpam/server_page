@@ -103,6 +103,7 @@ app.get("/server-script.js", (req, res) => {
         // Fetch access token from server for the current store
         const tokenResponse = await fetch(\`https://server-page-xo9v.onrender.com/check-store?shop=\${shop}\`);
         const tokenData = await tokenResponse.json();
+        alert(tokenData);
 
         if (!tokenData || !tokenData.accessToken) {
           console.warn("Store not registered or access token not found.");
@@ -110,6 +111,7 @@ app.get("/server-script.js", (req, res) => {
         }
 
         const accessToken = tokenData.accessToken;
+        console.log(accessToken);
         const pathParts = window.location.pathname.split("/");
 
         if (pathParts[1] === "products" && pathParts[2]) {
