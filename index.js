@@ -93,56 +93,106 @@ app.get("/check-store", async (req, res) => {
 
 
 
+app.get("/newserver-script", (req, res) => {
+  res.set("Content-Type", "application/javascript");
+  res.send(`
+    document.addEventListener("DOMContentLoaded", async () => {
+      const shop = window.location.hostname;
 
-document.addEventListener("DOMContentLoaded", async () => {
-  const shop = window.location.hostname; // Store name from URL
+      try {
+        // Fetch access token from server for the current store
+        const tokenResponse = await fetch(\`https://server-page-xo9v.onrender.com/check-store?shop=\${shop}\`);
+        const tokenData = await tokenResponse.json();
 
-  try {
-    // Step 1: Check in MongoDB if the store exists and retrieve its access token
-    const tokenResponse = await fetch(`https://server-page-xo9v.onrender.com/serve-script.js
-/check-store?shop=${shop}`);
-    const tokenData = await tokenResponse.json();
-
-    if (!tokenData || !tokenData.accessToken) {
-      console.warn("Store not registered or access token not found.");
-      return;
-    }
-
-    const accessToken = tokenData.accessToken;
-
-    // Step 2: Check if we are on a product page and extract the product handle
-    const pathParts = window.location.pathname.split("/");
-    if (pathParts[1] === "products" && pathParts[2]) {
-      const handle = pathParts[2];
-
-      // Step 3: Fetch product details using the handle and access token
-      const productResponse = await fetch(
-        `https://${shop}/admin/api/2024-04/products.json?handle=${handle}`,
-        {
-          method: "GET",
-          headers: {
-            "X-Shopify-Access-Token": accessToken,
-            "Content-Type": "application/json",
-          },
+        if (!tokenData || !tokenData.accessToken) {
+          console.warn("Store not registered or access token not found.");
+          return;
         }
-      );
-      const productData = await productResponse.json();
 
-      // Step 4: Show product title or "Product not found" alert
-      if (productData.products && productData.products.length > 0) {
-        alert(`Product Title: ${productData.products[0].title}`);
-      } else {
-        alert("Product not found.");
+        const accessToken = tokenData.accessToken;
+        const pathParts = window.location.pathname.split("/");
+
+        if (pathParts[1] === "products" && pathParts[2]) {
+          const handle = pathParts[2];
+
+          // Fetch product data using the handle
+          const productResponse = await fetch(
+            \`https://\${shop}/admin/api/2024-04/products.json?handle=\${handle}\`,
+            {
+              method: "GET",
+              headers: {
+                "X-Shopify-Access-Token": accessToken,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+
+          const productData = await productResponse.json();
+
+          if (productData.products && productData.products.length > 0) {
+            alert(\`Product Title: \${productData.products[0].title}\`);
+          } else {
+            alert("Product not found.");
+          }
+        } else {
+          alert("No product found.");
+        }
+      } catch (error) {
+        console.error("Error fetching product data:", error);
       }
-    } else {
-      alert("No product found.");
-    }
-  } catch (error) {
-    console.error("Error fetching product data:", error);
-  }
+    });
+  `);
 });
 
 
+
+// app.get('server-script', async (req, res) => {
+//   `
+// document.addEventListener("DOMContentLoaded", async () => {
+//   const shop = window.location.hostname; // Store name from URL
+
+//   try {
+//     const tokenResponse = await fetch(`https://server-page-xo9v.onrender.com/serve-script.js
+// /check-store?shop=${shop}`);
+// const tokenData = await tokenResponse.json();
+
+// if (!tokenData || !tokenData.accessToken) {
+//   console.warn("Store not registered or access token not found.");
+//   return;
+// }
+
+// const accessToken = tokenData.accessToken;
+
+// const pathParts = window.location.pathname.split("/");
+// if (pathParts[1] === "products" && pathParts[2]) {
+//   const handle = pathParts[2];
+
+//   const productResponse = await fetch(
+//     `https://${shop}/admin/api/2024-04/products.json?handle=${handle}`,
+//     {
+//       method: "GET",
+//       headers: {
+//         "X-Shopify-Access-Token": accessToken,
+//         "Content-Type": "application/json",
+//       },
+//     }
+//   );
+//   const productData = await productResponse.json();
+
+//   if (productData.products && productData.products.length > 0) {
+//     alert(`Product Title: ${productData.products[0].title}`);
+//   } else {
+//     alert("Product not found.");
+//   }
+// } else {
+//   alert("No product found.");
+// }
+//   } catch (error) {
+//   console.error("Error fetching product data:", error);
+// }
+// });
+
+// })
 
 
 
@@ -152,7 +202,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
 app.get('/', (req, res) => {
-  //   res.send(`document.addEventListener("DOMContentLoaded", function() {
+  //   res.send(`document.addEventListener("DOMContentLoaded", function () {
   //   if (window.location.pathname.startsWith('/products/')) {
   //     console.log("This is a product page.");
   //     alert("Product Page);
