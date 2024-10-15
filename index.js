@@ -102,7 +102,7 @@ app.get("/server-script.js", (req, res) => {
         alert('helllllllllloooooooooo');
 
          const tokenResponse = fetch(\`https://server-page-xo9v.onrender.com/check-store?shop=\${shop}\`);
-       const tokenData = await tokenResponse.json();
+       const tokenData = await tokenResponse.accessToken;
        alert(tokenData);
   }
        hello();
