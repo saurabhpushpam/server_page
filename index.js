@@ -93,7 +93,7 @@ app.get("/check-store", async (req, res) => {
 
 
 
-app.get("/newserver-script.js", (req, res) => {
+app.get("/server-script.js", (req, res) => {
   res.set("Content-Type", "application/javascript");
   res.send(`
     document.addEventListener("DOMContentLoaded", async () => {
