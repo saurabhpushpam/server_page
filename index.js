@@ -2,6 +2,153 @@ const express = require('express');
 const app = express();
 const cors = require('cors');
 app.use(cors());
+const mongoose = require('mongoose');
+
+const DB = "mongodb+srv://spuspam111:Sp123456@cluster0.0taaaup.mongodb.net/scripttag?retryWrites=true&w=majority";
+mongoose.connect(DB)
+  .then(() => {
+    console.log("Connected to MongoDB");
+  })
+  .catch(error => {
+    console.error("Error connecting to MongoDB:", error);
+  });
+
+
+const Shop = mongoose.model('Shop', new mongoose.Schema({
+  shop: { type: String, required: true, unique: true },
+  accessToken: { type: String, required: true },
+}));
+
+
+app.get('/serve-script/:shop', async (req, res) => {
+  // Extract the shop parameter from the query string
+  const shopName = req.params.shop;
+
+  if (!shopName) {
+    return res.status(400).send('Shop name is required');
+  }
+
+  // Find shop details in MongoDB
+  const shopData = await Shop.findOne({ shop: shopName });
+
+  if (!shopData) {
+    return res.status(404).send('Shop not found');
+  }
+
+  // Generate dynamic JavaScript
+  const scriptContent = `
+    document.addEventListener("DOMContentLoaded", async () => {
+      const urlParts = window.location.pathname.split("/");
+      const handle = urlParts[urlParts.length - 1];
+      
+      if (handle) {
+        const response = await fetch("https://${shopData.shop}/admin/api/2024-04/products.json?handle=" + handle, {
+          method: "GET",
+          headers: {
+            "X-Shopify-Access-Token": "${shopData.accessToken}",
+            "Content-Type": "application/json",
+          },
+        });
+        
+        const data = await response.json();
+        
+        if (data.products && data.products.length > 0) {
+          alert("Product title: " + data.products[0].title);
+        } else {
+          alert("Product not found.");
+        }
+      }
+    });
+  `;
+
+  // Set Content-Type to JavaScript
+  res.setHeader('Content-Type', 'application/javascript');
+  res.send(scriptContent);
+});
+
+
+
+
+
+
+
+
+
+
+
+app.get('/serve-script.js', async (req, res) => {
+  const scriptContent = `
+    document.addEventListener("DOMContentLoaded", async () => {
+      // Extract the 'shop' from the current URL
+      const shop = window.location.hostname;
+      
+      // Extract the product handle from the URL if we are on a product page
+      const pathParts = window.location.pathname.split("/");
+      if (pathParts[1] === "products" && pathParts[2]) {
+        const handle = pathParts[2];
+
+        try {
+          // Fetch product data from the server by passing shop and handle
+          const response = await fetch(\`https://your-server-url/serve-script.js?shop=\${shop}&handle=\${handle}\`);
+          const data = await response.json();
+
+          // Show product title in alert if it exists
+          if (data.title) {
+            alert("Product title: " + data.title);
+          } else {
+            alert("Product not found.");
+          }
+        } catch (error) {
+          console.error("Error fetching product data:", error);
+        }
+      }
+    });
+  `;
+
+  // If request contains query params for shop and handle, use them to fetch product details
+  const { shop, handle } = req.query;
+
+  if (shop && handle) {
+    try {
+      // Retrieve the access token from MongoDB
+      const shopData = await Shop.findOne({ shop });
+      if (!shopData) {
+        return res.status(404).json({ message: 'Shop not found' });
+      }
+
+      // Fetch the product details from Shopify
+      const response = await fetch(`https://${shopData.shop}/admin/api/2024-04/products.json?handle=${handle}`, {
+        method: 'GET',
+        headers: {
+          'X-Shopify-Access-Token': shopData.accessToken,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+      if (data.products && data.products.length > 0) {
+        return res.json({ title: data.products[0].title });
+      } else {
+        return res.status(404).json({ message: 'Product not found' });
+      }
+    } catch (error) {
+      console.error('Error fetching product data:', error);
+      return res.status(500).json({ message: 'Internal Server Error' });
+    }
+  } else {
+    // Serve the JavaScript content when query parameters are not provided
+    res.setHeader('Content-Type', 'application/javascript');
+    res.send(scriptContent);
+  }
+});
+
+
+
+
+
+
+
+
 
 
 app.get('/', (req, res) => {
