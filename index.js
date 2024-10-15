@@ -77,7 +77,7 @@ app.get("/check-store", async (req, res) => {
   const { shop } = req.query;
 
   try {
-    const store = await Store.findOne({ shop });
+    const store = await Shop.findOne({ shop });
 
     if (!store) {
       return res.status(404).json({ message: "Store not registered." });
