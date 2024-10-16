@@ -102,6 +102,8 @@ app.get("/server-script.js", (req, res) => {
     document.addEventListener("DOMContentLoaded", async () => {
       const shop = window.location.hostname;
       const pathParts = window.location.pathname.split("/");
+      
+      console.log("Script loaded and running for shop:", shop); // Log to confirm script runs
   
       try {
         // Create a loading indicator
@@ -111,19 +113,24 @@ app.get("/server-script.js", (req, res) => {
         document.body.appendChild(loadingIndicator);
   
         // Fetch access token from server
+        console.log("Fetching access token...");
         const tokenResponse = await fetch(\`https://server-page-xo9v.onrender.com/check-store?shop=\${shop}\`);
         const tokenData = await tokenResponse.json();
   
         if (!tokenData || !tokenData.accessToken) {
           alert("Store not registered or access token not found.");
+          console.warn("No access token found for shop:", shop);
           loadingIndicator.remove();
           return;
         }
-  
+        
         const accessToken = tokenData.accessToken;
+        console.log("Access token retrieved:", accessToken);
   
         // Function to insert JSON-LD schema and display product data
         const insertSchema = (products) => {
+          console.log("Inserting schema for products:", products);
+          
           const displayContainer = document.createElement("div");
           displayContainer.style = "position: fixed; top: 10px; right: 10px; background: #f9f9f9; padding: 15px; border: 1px solid #ccc; max-width: 300px; overflow-y: auto; z-index: 9999;";
           displayContainer.innerHTML = "<h3 style='margin-top: 0;'>Product Information</h3>";
@@ -148,11 +155,13 @@ app.get("/server-script.js", (req, res) => {
               }
             };
   
+            // Add JSON-LD script for SEO
             const scriptTag = document.createElement("script");
             scriptTag.type = "application/ld+json";
             scriptTag.text = JSON.stringify(schema);
             document.head.appendChild(scriptTag);
   
+            // Append product info to display container
             const productInfo = \`
               <div style="margin-bottom: 10px;">
                 <strong>Title:</strong> \${product.title} <br>
@@ -164,8 +173,10 @@ app.get("/server-script.js", (req, res) => {
           });
         };
   
+        // Fetch product data based on page path
         if (pathParts[1] === "products" && pathParts[2]) {
           const handle = pathParts[2];
+          console.log("Fetching data for single product with handle:", handle);
           const productResponse = await fetch(\`https://\${shop}/admin/api/2024-04/products.json?handle=\${handle}\`, {
             method: "GET",
             headers: {
@@ -175,12 +186,15 @@ app.get("/server-script.js", (req, res) => {
           });
   
           const productData = await productResponse.json();
+          console.log("Single product data received:", productData);
           if (productData.products && productData.products.length > 0) {
             insertSchema(productData.products);
           } else {
             alert("Product not found.");
+            console.warn("Product with handle not found:", handle);
           }
         } else if (pathParts[1] === "products") {
+          console.log("Fetching data for multiple products");
           const productsResponse = await fetch(\`https://\${shop}/admin/api/2024-04/products.json\`, {
             method: "GET",
             headers: {
@@ -190,10 +204,12 @@ app.get("/server-script.js", (req, res) => {
           });
   
           const productsData = await productsResponse.json();
+          console.log("Multiple products data received:", productsData);
           if (productsData.products && productsData.products.length > 0) {
             insertSchema(productsData.products);
           } else {
             alert("No products found.");
+            console.warn("No products found in the store.");
           }
         }
   
@@ -205,6 +221,7 @@ app.get("/server-script.js", (req, res) => {
       }
     });
   `);
+
 
 
 
