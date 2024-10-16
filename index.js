@@ -97,99 +97,102 @@ app.get("/server-script.js", (req, res) => {
   res.set("Content-Type", "application/javascript");
 
 
+  var shop = 'demosaurav.myshopify.com';
   res.send(`
-    function displayProductInfo() {
-      const shop = window.location.hostname;
-      const pathParts = window.location.pathname.split("/");
+       var shop = window.location.hostname;
 
-      console.log("Script loaded for shop:", shop);
+      function displayProductInfo() {
+        const shop = "${shop}"; // Injected from server into client script
+        const pathParts = window.location.pathname.split("/");
 
-      async function fetchProductData() {
-        try {
-          const displayContainer = document.createElement("div");
-          displayContainer.style = "position: fixed; top: 0; left: 0; width: 100%; background: #f0f8ff; color: #333; padding: 20px; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); z-index: 9999;";
-          displayContainer.innerHTML = "<h3>Product Information</h3>";
-          document.body.insertAdjacentElement("afterbegin", displayContainer);
+        console.log("Script loaded for shop:", shop);
 
-          const tokenResponse = await fetch(\`https://server-page-xo9v.onrender.com/check-store?shop=\${shop}\`);
-          const tokenData = await tokenResponse.json();
+        async function fetchProductData() {
+          try {
+            const displayContainer = document.createElement("div");
+            displayContainer.style = "position: fixed; top: 0; left: 0; width: 100%; background: #f0f8ff; color: #333; padding: 20px; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); z-index: 9999;";
+            displayContainer.innerHTML = "<h3>Product Information</h3>";
+            document.body.insertAdjacentElement("afterbegin", displayContainer);
 
-          if (!tokenData || !tokenData.accessToken) {
-            alert("Store not registered or access token not found.");
-            return;
-          }
+            const tokenResponse = await fetch(\`https://server-page-xo9v.onrender.com/check-store?shop=\${shop}\`);
+            const tokenData = await tokenResponse.json();
 
-          const accessToken = tokenData.accessToken;
-
-          const insertSchema = (products) => {
-            products.forEach((product) => {
-              const schema = {
-                "@context": "https://schema.org/",
-                "@type": "Product",
-                "name": product.title,
-                "image": product.images ? product.images.map((img) => img.src) : [],
-                "description": product.body_html || "",
-                "sku": product.sku || "",
-                "brand": { "@type": "Brand", "name": product.vendor || "" },
-                "offers": {
-                  "@type": "Offer",
-                  "priceCurrency": tokenData.currency || "USD",
-                  "price": product.variants && product.variants[0] ? product.variants[0].price : "0",
-                  "availability": product.available ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-                  "url": \`https://${shop}/products/\${product.handle}\`,
-                  "seller": { "@type": "Organization", "name": shop }
-                }
-              };
-
-              const scriptTag = document.createElement("script");
-              scriptTag.type = "application/ld+json";
-              scriptTag.text = JSON.stringify(schema);
-              document.head.appendChild(scriptTag);
-
-              const productInfo = \`
-                <div style="margin-bottom: 10px;">
-                  <strong>Product Title:</strong> \${product.title} <br>
-                  <strong>Price:</strong> \${product.variants && product.variants[0] ? product.variants[0].price : "N/A"} \${tokenData.currency || "USD"} <br>
-                </div>
-              \`;
-              displayContainer.innerHTML += productInfo;
-            });
-          };
-
-          if (pathParts[1] === "products" && pathParts[2]) {
-            const handle = pathParts[2];
-            const productResponse = await fetch(\`https://${shop}/admin/api/2024-04/products.json?handle=\${handle}\`, {
-              method: "GET",
-              headers: { "X-Shopify-Access-Token": accessToken, "Content-Type": "application/json" },
-            });
-            const productData = await productResponse.json();
-            if (productData.products && productData.products.length > 0) {
-              insertSchema(productData.products);
-            } else {
-              alert("Product not found.");
+            if (!tokenData || !tokenData.accessToken) {
+              alert("Store not registered or access token not found.");
+              return;
             }
-          } else if (pathParts[1] === "products") {
-            const productsResponse = await fetch(\`https://${shop}/admin/api/2024-04/products.json\`, {
-              method: "GET",
-              headers: { "X-Shopify-Access-Token": accessToken, "Content-Type": "application/json" },
-            });
-            const productsData = await productsResponse.json();
-            if (productsData.products && productsData.products.length > 0) {
-              insertSchema(productsData.products);
-            } else {
-              alert("No products found.");
+
+            const accessToken = tokenData.accessToken;
+
+            const insertSchema = (products) => {
+              products.forEach((product) => {
+                const schema = {
+                  "@context": "https://schema.org/",
+                  "@type": "Product",
+                  "name": product.title,
+                  "image": product.images ? product.images.map((img) => img.src) : [],
+                  "description": product.body_html || "",
+                  "sku": product.sku || "",
+                  "brand": { "@type": "Brand", "name": product.vendor || "" },
+                  "offers": {
+                    "@type": "Offer",
+                    "priceCurrency": tokenData.currency || "USD",
+                    "price": product.variants && product.variants[0] ? product.variants[0].price : "0",
+                    "availability": product.available ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+                    "url": \`https://${shop}/products/\${product.handle}\`,
+                    "seller": { "@type": "Organization", "name": shop }
+                  }
+                };
+
+                const scriptTag = document.createElement("script");
+                scriptTag.type = "application/ld+json";
+                scriptTag.text = JSON.stringify(schema);
+                document.head.appendChild(scriptTag);
+
+                const productInfo = \`
+                  <div style="margin-bottom: 10px;">
+                    <strong>Product Title:</strong> \${product.title} <br>
+                    <strong>Price:</strong> \${product.variants && product.variants[0] ? product.variants[0].price : "N/A"} \${tokenData.currency || "USD"} <br>
+                  </div>
+                \`;
+                displayContainer.innerHTML += productInfo;
+              });
+            };
+
+            if (pathParts[1] === "products" && pathParts[2]) {
+              const handle = pathParts[2];
+              const productResponse = await fetch(\`https://${shop}/admin/api/2024-04/products.json?handle=\${handle}\`, {
+                method: "GET",
+                headers: { "X-Shopify-Access-Token": accessToken, "Content-Type": "application/json" },
+              });
+              const productData = await productResponse.json();
+              if (productData.products && productData.products.length > 0) {
+                insertSchema(productData.products);
+              } else {
+                alert("Product not found.");
+              }
+            } else if (pathParts[1] === "products") {
+              const productsResponse = await fetch(\`https://${shop}/admin/api/2024-04/products.json\`, {
+                method: "GET",
+                headers: { "X-Shopify-Access-Token": accessToken, "Content-Type": "application/json" },
+              });
+              const productsData = await productsResponse.json();
+              if (productsData.products && productsData.products.length > 0) {
+                insertSchema(productsData.products);
+              } else {
+                alert("No products found.");
+              }
             }
+          } catch (error) {
+            console.error("Error fetching product data:", error);
           }
-        } catch (error) {
-          console.error("Error fetching product data:", error);
         }
-      }
 
-      fetchProductData();
-    }
-    
-    displayProductInfo();
-  `);
+        fetchProductData();
+      }
+      
+      displayProductInfo();
+    `);
 
 
 
