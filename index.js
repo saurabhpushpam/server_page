@@ -95,6 +95,9 @@ app.get("/check-store", async (req, res) => {
 
 app.get("/server-script.js", (req, res) => {
   res.set("Content-Type", "application/javascript");
+
+
+
   res.send(`
     async function hello(){
          const shop = window.location.hostname;
@@ -106,19 +109,87 @@ app.get("/server-script.js", (req, res) => {
           const tokenResponse = await fetch(\`https://server-page-xo9v.onrender.com/check-store?shop=\${shop}\`);
           const tokenData = await tokenResponse.json();
 
-          if (tokenData && tokenData.accessToken) {
-            alert("Access Token: " + tokenData.accessToken);
+
+        if (tokenData && tokenData.accessToken) {
+          const accessToken = tokenData.accessToken;
+          alert("Access Token: " + accessToken);
+
+          // Check if on a product page
+          const pathParts = window.location.pathname.split("/");
+          if (pathParts[1] === "products" && pathParts[2]) {
+            const handle = pathParts[2];
+            alert("Product Handle: " + handle);
+
+            // Fetch product details using the handle
+            const productResponse = await fetch(
+              \`https://\${shop}/admin/api/2024-04/products.json?handle=\${handle}\`,
+              {
+                method: "GET",
+                headers: {
+                  "X-Shopify-Access-Token": accessToken,
+                  "Content-Type": "application/json",
+                },
+              }
+            );
+
+            const productData = await productResponse.json();
+
+            if (productData.products && productData.products.length > 0) {
+              alert("Product Title: " + productData.products[0].title);
+            } else {
+              alert("Product not found.");
+            }
           } else {
-            alert("Access token not found for this shop.");
+            alert("No product found.");
           }
-        } catch (error) {
-          console.error("Error fetching token:", error);
-          alert("Failed to fetch access token.");
+        } else {
+          alert("Access token not found for this shop.");
         }
+      } catch (error) {
+        console.error("Error fetching product data:", error);
+        alert("Failed to fetch product data.");
+      }
     }
        hello();
     `);
+
+
+
+
+
+
+
+
+
+
+
+  // res.send(`
+  //   async function hello(){
+  //        const shop = window.location.hostname;
+
+  //       alert('helloooooooooo');
+
+  //       try {
+
+  //         const tokenResponse = await fetch(\`https://server-page-xo9v.onrender.com/check-store?shop=\${shop}\`);
+  //         const tokenData = await tokenResponse.json();
+
+  //         if (tokenData && tokenData.accessToken) {
+  //           alert("Access Token: " + tokenData.accessToken);
+  //         } else {
+  //           alert("Access token not found for this shop.");
+  //         }
+  //       } catch (error) {
+  //         console.error("Error fetching token:", error);
+  //         alert("Failed to fetch access token.");
+  //       }
+  //   }
+  //      hello();
+  //   `);
 });
+
+
+
 
 //   res.send(`
 //   document.addEventListener("DOMContentLoaded", async () => {
