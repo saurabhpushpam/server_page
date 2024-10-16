@@ -97,7 +97,7 @@ app.get("/server-script.js", (req, res) => {
   res.set("Content-Type", "application/javascript");
 
 
-  var shop = 'demosaurav.myshopify.com';
+  // var shop = 'demosaurav.myshopify.com';
   // res.send(`
   //      var shop = window.location.hostname;
 
