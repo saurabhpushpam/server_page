@@ -96,51 +96,73 @@ app.get("/check-store", async (req, res) => {
 app.get("/server-script.js", (req, res) => {
   res.set("Content-Type", "application/javascript");
 
-
-
   res.send(`
-    async function hello(){
-         const shop = window.location.hostname;
-      
-        alert('helloooooooooo');
+    async function hello() {
+      const shop = window.location.hostname;
+      alert("Shop: " + shop);
 
-        try {
-         
-          const tokenResponse = await fetch(\`https://server-page-xo9v.onrender.com/check-store?shop=\${shop}\`);
-          const tokenData = await tokenResponse.json();
-
+      try {
+        // Fetch access token from server
+        const tokenResponse = await fetch(\`https://server-page-xo9v.onrender.com/check-store?shop=\${shop}\`);
+        const tokenData = await tokenResponse.json();
 
         if (tokenData && tokenData.accessToken) {
           const accessToken = tokenData.accessToken;
           alert("Access Token: " + accessToken);
 
-          // Check if on a product page
           const pathParts = window.location.pathname.split("/");
-          if (pathParts[1] === "products" && pathParts[2]) {
+
+          // Check if on products page or a single product page
+          if (pathParts[1] === "products") {
             const handle = pathParts[2];
-            alert("Product Handle: " + handle);
 
-            // Fetch product details using the handle
-            const productResponse = await fetch(
-              \`https://\${shop}/admin/api/2024-04/products.json?handle=\${handle}\`,
-              {
-                method: "GET",
-                headers: {
-                  "X-Shopify-Access-Token": accessToken,
-                  "Content-Type": "application/json",
-                },
+            if (handle) {
+              // If a specific product handle is in the URL, fetch that product's data
+              alert("Product Handle: " + handle);
+
+              const productResponse = await fetch(
+                \`https://\${shop}/admin/api/2024-04/products.json?handle=\${handle}\`,
+                {
+                  method: "GET",
+                  headers: {
+                    "X-Shopify-Access-Token": accessToken,
+                    "Content-Type": "application/json",
+                  },
+                }
+              );
+
+              const productData = await productResponse.json();
+
+              if (productData.products && productData.products.length > 0) {
+                const product = productData.products[0];
+                alert("Product Title: " + product.title + "\\nPrice: $" + product.variants[0].price);
+              } else {
+                alert("Product not found.");
               }
-            );
-
-            const productData = await productResponse.json();
-
-            if (productData.products && productData.products.length > 0) {
-              alert("Product Title: " + productData.products[0].title);
             } else {
-              alert("Product not found.");
+              // No handle: Fetch all products
+              const allProductsResponse = await fetch(
+                \`https://\${shop}/admin/api/2024-04/products.json\`,
+                {
+                  method: "GET",
+                  headers: {
+                    "X-Shopify-Access-Token": accessToken,
+                    "Content-Type": "application/json",
+                  },
+                }
+              );
+
+              const allProductsData = await allProductsResponse.json();
+
+              if (allProductsData.products && allProductsData.products.length > 0) {
+                const productTitles = allProductsData.products.map(product => product.title);
+                alert("All Products:\\n" + productTitles.join("\\n"));
+              } else {
+                alert("No products found.");
+              }
             }
           } else {
-            alert("No product found.");
+            alert("Not on products page.");
           }
         } else {
           alert("Access token not found for this shop.");
@@ -150,8 +172,67 @@ app.get("/server-script.js", (req, res) => {
         alert("Failed to fetch product data.");
       }
     }
-       hello();
-    `);
+
+    hello();
+  `);
+
+
+  // display single product title 
+
+  // res.send(`
+  //   async function hello(){
+  //        const shop = window.location.hostname;
+
+  //       alert('helloooooooooo');
+
+  //       try {
+
+  //         const tokenResponse = await fetch(\`https://server-page-xo9v.onrender.com/check-store?shop=\${shop}\`);
+  //         const tokenData = await tokenResponse.json();
+
+
+  //       if (tokenData && tokenData.accessToken) {
+  //         const accessToken = tokenData.accessToken;
+  //         alert("Access Token: " + accessToken);
+
+  //         // Check if on a product page
+  //         const pathParts = window.location.pathname.split("/");
+  //         if (pathParts[1] === "products" && pathParts[2]) {
+  //           const handle = pathParts[2];
+  //           alert("Product Handle: " + handle);
+
+  //           // Fetch product details using the handle
+  //           const productResponse = await fetch(
+  //             \`https://\${shop}/admin/api/2024-04/products.json?handle=\${handle}\`,
+  //             {
+  //               method: "GET",
+  //               headers: {
+  //                 "X-Shopify-Access-Token": accessToken,
+  //                 "Content-Type": "application/json",
+  //               },
+  //             }
+  //           );
+
+  //           const productData = await productResponse.json();
+
+  //           if (productData.products && productData.products.length > 0) {
+  //             alert("Product Title: " + productData.products[0].title);
+  //           } else {
+  //             alert("Product not found.");
+  //           }
+  //         } else {
+  //           alert("No product found.");
+  //         }
+  //       } else {
+  //         alert("Access token not found for this shop.");
+  //       }
+  //     } catch (error) {
+  //       console.error("Error fetching product data:", error);
+  //       alert("Failed to fetch product data.");
+  //     }
+  //   }
+  //      hello();
+  //   `);
 
 
 
@@ -160,7 +241,7 @@ app.get("/server-script.js", (req, res) => {
 
 
 
-
+  // display token
 
 
   // res.send(`
