@@ -97,14 +97,25 @@ app.get("/server-script.js", (req, res) => {
   res.set("Content-Type", "application/javascript");
   res.send(`
     async function hello(){
-        const shop = window.location.hostname;
+         const shop = window.location.hostname;
       
-        alert('helllllllllloooooooooo');
+        alert('helloooooooooo');
 
-         const tokenResponse = fetch(\`https://server-page-xo9v.onrender.com/check-store?shop=\${shop}\`);
-       const tokenData = await tokenResponse.accessToken;
-       alert(tokenData);
-  }
+        try {
+         
+          const tokenResponse = await fetch(\`https://server-page-xo9v.onrender.com/check-store?shop=\${shop}\`);
+          const tokenData = await tokenResponse.json();
+
+          if (tokenData && tokenData.accessToken) {
+            alert("Access Token: " + tokenData.accessToken);
+          } else {
+            alert("Access token not found for this shop.");
+          }
+        } catch (error) {
+          console.error("Error fetching token:", error);
+          alert("Failed to fetch access token.");
+        }
+    }
        hello();
     `);
 });
