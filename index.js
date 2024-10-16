@@ -98,8 +98,10 @@ app.get("/server-script.js", (req, res) => {
 
 
   res.send(`
+     const shop = window.location.hostname;
+     
     async function insertProductSchema() {
-      const shop = window.location.hostname;
+     
 
       try {
         // Fetch access token from server
