@@ -188,7 +188,7 @@ app.get("/server-script.js", (req, res) => {
           "priceValidUntil": new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split("T")[0],
           "seller": {
             "@type": "Organization",
-            "name": "${shop}"
+            "name": shop
           }
         }
       };
