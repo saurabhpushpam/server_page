@@ -96,10 +96,10 @@ app.get("/check-store", async (req, res) => {
 app.get("/server-script.js", (req, res) => {
   res.set("Content-Type", "application/javascript");
 
+
   res.send(`
-    async function hello() {
+    async function insertProductSchema() {
       const shop = window.location.hostname;
-      alert("Shop: " + shop);
 
       try {
         // Fetch access token from server
@@ -108,18 +108,15 @@ app.get("/server-script.js", (req, res) => {
 
         if (tokenData && tokenData.accessToken) {
           const accessToken = tokenData.accessToken;
-          alert("Access Token: " + accessToken);
-
           const pathParts = window.location.pathname.split("/");
 
-          // Check if on products page or a single product page
+          // Check if on products page or single product page
           if (pathParts[1] === "products") {
             const handle = pathParts[2];
 
+            let productData;
             if (handle) {
-              // If a specific product handle is in the URL, fetch that product's data
-              alert("Product Handle: " + handle);
-
+              // Fetch specific product by handle
               const productResponse = await fetch(
                 \`https://\${shop}/admin/api/2024-04/products.json?handle=\${handle}\`,
                 {
@@ -130,17 +127,15 @@ app.get("/server-script.js", (req, res) => {
                   },
                 }
               );
-
-              const productData = await productResponse.json();
-
+              productData = await productResponse.json();
               if (productData.products && productData.products.length > 0) {
                 const product = productData.products[0];
-                alert("Product Title: " + product.title + "\\nPrice: $" + product.variants[0].price);
+                insertSchema(product);
               } else {
-                alert("Product not found.");
+                console.warn("Product not found.");
               }
             } else {
-              // No handle: Fetch all products
+              // Fetch all products for the /products page
               const allProductsResponse = await fetch(
                 \`https://\${shop}/admin/api/2024-04/products.json\`,
                 {
@@ -151,30 +146,148 @@ app.get("/server-script.js", (req, res) => {
                   },
                 }
               );
-
-              const allProductsData = await allProductsResponse.json();
-
-              if (allProductsData.products && allProductsData.products.length > 0) {
-                const productTitles = allProductsData.products.map(product => product.title);
-                alert("All Products:\\n" + productTitles.join("\\n"));
+              productData = await allProductsResponse.json();
+              if (productData.products && productData.products.length > 0) {
+                productData.products.forEach(insertSchema);
               } else {
-                alert("No products found.");
+                console.warn("No products found.");
               }
             }
           } else {
-            alert("Not on products page.");
+            console.warn("Not on products page.");
           }
         } else {
-          alert("Access token not found for this shop.");
+          console.warn("Access token not found for this shop.");
         }
       } catch (error) {
         console.error("Error fetching product data:", error);
-        alert("Failed to fetch product data.");
       }
     }
 
-    hello();
+    function insertSchema(product) {
+      // Build the JSON-LD schema for the product
+      const schemaData = {
+        "@context": "https://schema.org/",
+        "@type": "Product",
+        "name": product.title,
+        "image": product.images.map(image => image.src),
+        "description": product.body_html.replace(/<[^>]*>/g, ""),
+        "sku": product.variants[0].sku,
+        "mpn": product.variants[0].sku,
+        "brand": {
+          "@type": "Brand",
+          "name": product.vendor
+        },
+        "offers": {
+          "@type": "Offer",
+          "priceCurrency": product.variants[0].currency,
+          "price": product.variants[0].price,
+          "itemCondition": "https://schema.org/NewCondition",
+          "availability": product.variants[0].inventory_quantity > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+          "url": window.location.href,
+          "priceValidUntil": new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split("T")[0],
+          "seller": {
+            "@type": "Organization",
+            "name": "${shop}"
+          }
+        }
+      };
+
+      // Create a <script> tag and insert JSON-LD structured data
+      const script = document.createElement("script");
+      script.type = "application/ld+json";
+      script.text = JSON.stringify(schemaData);
+      document.head.appendChild(script);
+      console.log("JSON-LD schema inserted for product:", product.title);
+    }
+
+    insertProductSchema();
   `);
+
+
+
+
+  // alert all product title if we are in /products page, and if we are in single product page then alert product title and price
+
+  // res.send(`
+  //   async function hello() {
+  //     const shop = window.location.hostname;
+  //     alert("Shop: " + shop);
+
+  //     try {
+  //       // Fetch access token from server
+  //       const tokenResponse = await fetch(\`https://server-page-xo9v.onrender.com/check-store?shop=\${shop}\`);
+  //       const tokenData = await tokenResponse.json();
+
+  //       if (tokenData && tokenData.accessToken) {
+  //         const accessToken = tokenData.accessToken;
+  //         alert("Access Token: " + accessToken);
+
+  //         const pathParts = window.location.pathname.split("/");
+
+  //         // Check if on products page or a single product page
+  //         if (pathParts[1] === "products") {
+  //           const handle = pathParts[2];
+
+  //           if (handle) {
+  //             // If a specific product handle is in the URL, fetch that product's data
+  //             alert("Product Handle: " + handle);
+
+  //             const productResponse = await fetch(
+  //               \`https://\${shop}/admin/api/2024-04/products.json?handle=\${handle}\`,
+  //               {
+  //                 method: "GET",
+  //                 headers: {
+  //                   "X-Shopify-Access-Token": accessToken,
+  //                   "Content-Type": "application/json",
+  //                 },
+  //               }
+  //             );
+
+  //             const productData = await productResponse.json();
+
+  //             if (productData.products && productData.products.length > 0) {
+  //               const product = productData.products[0];
+  //               alert("Product Title: " + product.title + "\\nPrice: $" + product.variants[0].price);
+  //             } else {
+  //               alert("Product not found.");
+  //             }
+  //           } else {
+  //             // No handle: Fetch all products
+  //             const allProductsResponse = await fetch(
+  //               \`https://\${shop}/admin/api/2024-04/products.json\`,
+  //               {
+  //                 method: "GET",
+  //                 headers: {
+  //                   "X-Shopify-Access-Token": accessToken,
+  //                   "Content-Type": "application/json",
+  //                 },
+  //               }
+  //             );
+
+  //             const allProductsData = await allProductsResponse.json();
+
+  //             if (allProductsData.products && allProductsData.products.length > 0) {
+  //               const productTitles = allProductsData.products.map(product => product.title);
+  //               alert("All Products:\\n" + productTitles.join("\\n"));
+  //             } else {
+  //               alert("No products found.");
+  //             }
+  //           }
+  //         } else {
+  //           alert("Not on products page.");
+  //         }
+  //       } else {
+  //         alert("Access token not found for this shop.");
+  //       }
+  //     } catch (error) {
+  //       console.error("Error fetching product data:", error);
+  //       alert("Failed to fetch product data.");
+  //     }
+  //   }
+
+  //   hello();
+  // `);
 
 
   // display single product title 
