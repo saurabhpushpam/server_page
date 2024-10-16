@@ -98,101 +98,101 @@ app.get("/server-script.js", (req, res) => {
 
 
   var shop = 'demosaurav.myshopify.com';
-  res.send(`
-       var shop = window.location.hostname;
+  // res.send(`
+  //      var shop = window.location.hostname;
 
-      function displayProductInfo() {
-        const shop = "${shop}"; // Injected from server into client script
-        const pathParts = window.location.pathname.split("/");
+  //     function displayProductInfo() {
+  //       const shop = "${shop}"; // Injected from server into client script
+  //       const pathParts = window.location.pathname.split("/");
 
-        console.log("Script loaded for shop:", shop);
+  //       console.log("Script loaded for shop:", shop);
 
-        async function fetchProductData() {
-          try {
-            const displayContainer = document.createElement("div");
-            displayContainer.style = "position: fixed; top: 0; left: 0; width: 100%; background: #f0f8ff; color: #333; padding: 20px; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); z-index: 9999;";
-            displayContainer.innerHTML = "<h3>Product Information</h3>";
-            document.body.insertAdjacentElement("afterbegin", displayContainer);
+  //       async function fetchProductData() {
+  //         try {
+  //           const displayContainer = document.createElement("div");
+  //           displayContainer.style = "position: fixed; top: 0; left: 0; width: 100%; background: #f0f8ff; color: #333; padding: 20px; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); z-index: 9999;";
+  //           displayContainer.innerHTML = "<h3>Product Information</h3>";
+  //           document.body.insertAdjacentElement("afterbegin", displayContainer);
 
-            const tokenResponse = await fetch(\`https://server-page-xo9v.onrender.com/check-store?shop=\${shop}\`);
-            const tokenData = await tokenResponse.json();
+  //           const tokenResponse = await fetch(\`https://server-page-xo9v.onrender.com/check-store?shop=\${shop}\`);
+  //           const tokenData = await tokenResponse.json();
 
-            if (!tokenData || !tokenData.accessToken) {
-              alert("Store not registered or access token not found.");
-              return;
-            }
+  //           if (!tokenData || !tokenData.accessToken) {
+  //             alert("Store not registered or access token not found.");
+  //             return;
+  //           }
 
-            const accessToken = tokenData.accessToken;
+  //           const accessToken = tokenData.accessToken;
 
-            const insertSchema = (products) => {
-              products.forEach((product) => {
-                const schema = {
-                  "@context": "https://schema.org/",
-                  "@type": "Product",
-                  "name": product.title,
-                  "image": product.images ? product.images.map((img) => img.src) : [],
-                  "description": product.body_html || "",
-                  "sku": product.sku || "",
-                  "brand": { "@type": "Brand", "name": product.vendor || "" },
-                  "offers": {
-                    "@type": "Offer",
-                    "priceCurrency": tokenData.currency || "USD",
-                    "price": product.variants && product.variants[0] ? product.variants[0].price : "0",
-                    "availability": product.available ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-                    "url": \`https://${shop}/products/\${product.handle}\`,
-                    "seller": { "@type": "Organization", "name": shop }
-                  }
-                };
+  //           const insertSchema = (products) => {
+  //             products.forEach((product) => {
+  //               const schema = {
+  //                 "@context": "https://schema.org/",
+  //                 "@type": "Product",
+  //                 "name": product.title,
+  //                 "image": product.images ? product.images.map((img) => img.src) : [],
+  //                 "description": product.body_html || "",
+  //                 "sku": product.sku || "",
+  //                 "brand": { "@type": "Brand", "name": product.vendor || "" },
+  //                 "offers": {
+  //                   "@type": "Offer",
+  //                   "priceCurrency": tokenData.currency || "USD",
+  //                   "price": product.variants && product.variants[0] ? product.variants[0].price : "0",
+  //                   "availability": product.available ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+  //                   "url": \`https://${shop}/products/\${product.handle}\`,
+  //                   "seller": { "@type": "Organization", "name": shop }
+  //                 }
+  //               };
 
-                const scriptTag = document.createElement("script");
-                scriptTag.type = "application/ld+json";
-                scriptTag.text = JSON.stringify(schema);
-                document.head.appendChild(scriptTag);
+  //               const scriptTag = document.createElement("script");
+  //               scriptTag.type = "application/ld+json";
+  //               scriptTag.text = JSON.stringify(schema);
+  //               document.head.appendChild(scriptTag);
 
-                const productInfo = \`
-                  <div style="margin-bottom: 10px;">
-                    <strong>Product Title:</strong> \${product.title} <br>
-                    <strong>Price:</strong> \${product.variants && product.variants[0] ? product.variants[0].price : "N/A"} \${tokenData.currency || "USD"} <br>
-                  </div>
-                \`;
-                displayContainer.innerHTML += productInfo;
-              });
-            };
+  //               const productInfo = \`
+  //                 <div style="margin-bottom: 10px;">
+  //                   <strong>Product Title:</strong> \${product.title} <br>
+  //                   <strong>Price:</strong> \${product.variants && product.variants[0] ? product.variants[0].price : "N/A"} \${tokenData.currency || "USD"} <br>
+  //                 </div>
+  //               \`;
+  //               displayContainer.innerHTML += productInfo;
+  //             });
+  //           };
 
-            if (pathParts[1] === "products" && pathParts[2]) {
-              const handle = pathParts[2];
-              const productResponse = await fetch(\`https://${shop}/admin/api/2024-04/products.json?handle=\${handle}\`, {
-                method: "GET",
-                headers: { "X-Shopify-Access-Token": accessToken, "Content-Type": "application/json" },
-              });
-              const productData = await productResponse.json();
-              if (productData.products && productData.products.length > 0) {
-                insertSchema(productData.products);
-              } else {
-                alert("Product not found.");
-              }
-            } else if (pathParts[1] === "products") {
-              const productsResponse = await fetch(\`https://${shop}/admin/api/2024-04/products.json\`, {
-                method: "GET",
-                headers: { "X-Shopify-Access-Token": accessToken, "Content-Type": "application/json" },
-              });
-              const productsData = await productsResponse.json();
-              if (productsData.products && productsData.products.length > 0) {
-                insertSchema(productsData.products);
-              } else {
-                alert("No products found.");
-              }
-            }
-          } catch (error) {
-            console.error("Error fetching product data:", error);
-          }
-        }
+  //           if (pathParts[1] === "products" && pathParts[2]) {
+  //             const handle = pathParts[2];
+  //             const productResponse = await fetch(\`https://${shop}/admin/api/2024-04/products.json?handle=\${handle}\`, {
+  //               method: "GET",
+  //               headers: { "X-Shopify-Access-Token": accessToken, "Content-Type": "application/json" },
+  //             });
+  //             const productData = await productResponse.json();
+  //             if (productData.products && productData.products.length > 0) {
+  //               insertSchema(productData.products);
+  //             } else {
+  //               alert("Product not found.");
+  //             }
+  //           } else if (pathParts[1] === "products") {
+  //             const productsResponse = await fetch(\`https://${shop}/admin/api/2024-04/products.json\`, {
+  //               method: "GET",
+  //               headers: { "X-Shopify-Access-Token": accessToken, "Content-Type": "application/json" },
+  //             });
+  //             const productsData = await productsResponse.json();
+  //             if (productsData.products && productsData.products.length > 0) {
+  //               insertSchema(productsData.products);
+  //             } else {
+  //               alert("No products found.");
+  //             }
+  //           }
+  //         } catch (error) {
+  //           console.error("Error fetching product data:", error);
+  //         }
+  //       }
 
-        fetchProductData();
-      }
-      
-      displayProductInfo();
-    `);
+  //       fetchProductData();
+  //     }
+
+  //     displayProductInfo();
+  //   `);
 
 
 
@@ -200,114 +200,114 @@ app.get("/server-script.js", (req, res) => {
 
   // append all data in schema in head tag
 
-  // res.send(`
-  //    const shop = window.location.hostname;
+  res.send(`
+     const shop = window.location.hostname;
 
-  //   async function insertProductSchema() {
+    async function insertProductSchema() {
 
 
-  //     try {
-  //       // Fetch access token from server
-  //       const tokenResponse = await fetch(\`https://server-page-xo9v.onrender.com/check-store?shop=\${shop}\`);
-  //       const tokenData = await tokenResponse.json();
+      try {
+        // Fetch access token from server
+        const tokenResponse = await fetch(\`https://server-page-xo9v.onrender.com/check-store?shop=\${shop}\`);
+        const tokenData = await tokenResponse.json();
 
-  //       if (tokenData && tokenData.accessToken) {
-  //         const accessToken = tokenData.accessToken;
-  //         const pathParts = window.location.pathname.split("/");
+        if (tokenData && tokenData.accessToken) {
+          const accessToken = tokenData.accessToken;
+          const pathParts = window.location.pathname.split("/");
 
-  //         // Check if on products page or single product page
-  //         if (pathParts[1] === "products") {
-  //           const handle = pathParts[2];
+          // Check if on products page or single product page
+          if (pathParts[1] === "products") {
+            const handle = pathParts[2];
 
-  //           let productData;
-  //           if (handle) {
-  //             // Fetch specific product by handle
-  //             const productResponse = await fetch(
-  //               \`https://\${shop}/admin/api/2024-04/products.json?handle=\${handle}\`,
-  //               {
-  //                 method: "GET",
-  //                 headers: {
-  //                   "X-Shopify-Access-Token": accessToken,
-  //                   "Content-Type": "application/json",
-  //                 },
-  //               }
-  //             );
-  //             productData = await productResponse.json();
-  //             if (productData.products && productData.products.length > 0) {
-  //               const product = productData.products[0];
-  //               insertSchema(product);
-  //             } else {
-  //               console.warn("Product not found.");
-  //             }
-  //           } else {
-  //             // Fetch all products for the /products page
-  //             const allProductsResponse = await fetch(
-  //               \`https://\${shop}/admin/api/2024-04/products.json\`,
-  //               {
-  //                 method: "GET",
-  //                 headers: {
-  //                   "X-Shopify-Access-Token": accessToken,
-  //                   "Content-Type": "application/json",
-  //                 },
-  //               }
-  //             );
-  //             productData = await allProductsResponse.json();
-  //             if (productData.products && productData.products.length > 0) {
-  //               productData.products.forEach(insertSchema);
-  //             } else {
-  //               console.warn("No products found.");
-  //             }
-  //           }
-  //         } else {
-  //           console.warn("Not on products page.");
-  //         }
-  //       } else {
-  //         console.warn("Access token not found for this shop.");
-  //       }
-  //     } catch (error) {
-  //       console.error("Error fetching product data:", error);
-  //     }
-  //   }
+            let productData;
+            if (handle) {
+              // Fetch specific product by handle
+              const productResponse = await fetch(
+                \`https://\${shop}/admin/api/2024-04/products.json?handle=\${handle}\`,
+                {
+                  method: "GET",
+                  headers: {
+                    "X-Shopify-Access-Token": accessToken,
+                    "Content-Type": "application/json",
+                  },
+                }
+              );
+              productData = await productResponse.json();
+              if (productData.products && productData.products.length > 0) {
+                const product = productData.products[0];
+                insertSchema(product);
+              } else {
+                console.warn("Product not found.");
+              }
+            } else {
+              // Fetch all products for the /products page
+              const allProductsResponse = await fetch(
+                \`https://\${shop}/admin/api/2024-04/products.json\`,
+                {
+                  method: "GET",
+                  headers: {
+                    "X-Shopify-Access-Token": accessToken,
+                    "Content-Type": "application/json",
+                  },
+                }
+              );
+              productData = await allProductsResponse.json();
+              if (productData.products && productData.products.length > 0) {
+                productData.products.forEach(insertSchema);
+              } else {
+                console.warn("No products found.");
+              }
+            }
+          } else {
+            console.warn("Not on products page.");
+          }
+        } else {
+          console.warn("Access token not found for this shop.");
+        }
+      } catch (error) {
+        console.error("Error fetching product data:", error);
+      }
+    }
 
-  //   function insertSchema(product) {
-  //     // Build the JSON-LD schema for the product
-  //     const schemaData = {
-  //       "@context": "https://schema.org/",
-  //       "@type": "Product",
-  //       "name": product.title,
-  //       "image": product.images.map(image => image.src),
-  //       "description": product.body_html.replace(/<[^>]*>/g, ""),
-  //       "sku": product.variants[0].sku,
-  //       "mpn": product.variants[0].sku,
-  //       "brand": {
-  //         "@type": "Brand",
-  //         "name": product.vendor
-  //       },
-  //       "offers": {
-  //         "@type": "Offer",
-  //         "priceCurrency": product.variants[0].currency,
-  //         "price": product.variants[0].price,
-  //         "itemCondition": "https://schema.org/NewCondition",
-  //         "availability": product.variants[0].inventory_quantity > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-  //         "url": window.location.href,
-  //         "priceValidUntil": new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split("T")[0],
-  //         "seller": {
-  //           "@type": "Organization",
-  //           "name": shop
-  //         }
-  //       }
-  //     };
+    function insertSchema(product) {
+      // Build the JSON-LD schema for the product
+      const schemaData = {
+        "@context": "https://schema.org/",
+        "@type": "Product",
+        "name": product.title,
+        "image": product.images.map(image => image.src),
+        "description": product.body_html.replace(/<[^>]*>/g, ""),
+        "sku": product.variants[0].sku,
+        "mpn": product.variants[0].sku,
+        "brand": {
+          "@type": "Brand",
+          "name": product.vendor
+        },
+        "offers": {
+          "@type": "Offer",
+          "priceCurrency": product.variants[0].currency,
+          "price": product.variants[0].price,
+          "itemCondition": "https://schema.org/NewCondition",
+          "availability": product.variants[0].inventory_quantity > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+          "url": window.location.href,
+          "priceValidUntil": new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split("T")[0],
+          "seller": {
+            "@type": "Organization",
+            "name": shop
+          }
+        }
+      };
 
-  //     // Create a <script> tag and insert JSON-LD structured data
-  //     const script = document.createElement("script");
-  //     script.type = "application/ld+json";
-  //     script.text = JSON.stringify(schemaData);
-  //     document.head.appendChild(script);
-  //     console.log("JSON-LD schema inserted for product:", product.title);
-  //   }
+      // Create a <script> tag and insert JSON-LD structured data
+      const script = document.createElement("script");
+      script.type = "application/ld+json";
+      script.text = JSON.stringify(schemaData);
+      document.head.appendChild(script);
+      console.log("JSON-LD schema inserted for product:", product.title);
+    }
 
-  //   insertProductSchema();
-  // `);
+    insertProductSchema();
+  `);
 
 
 
