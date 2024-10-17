@@ -919,10 +919,10 @@ app.get('/remove-server-script', (req, res) => {
 // insert scripttag for remove product from head
 
 
-app.get('/removetag', async (req, res) => {
+app.get('/removetag/:shopname', async (req, res) => {
   // const shop = 'demosaurav.myshopify.com';
   // const shop = window.location.hostname;
-  const shop = req.hostname;
+  const shop = req.params.shopname;
   const scriptUrl = "https://server-page-xo9v.onrender.com/server-script.js";
 
   try {
