@@ -828,56 +828,95 @@ app.get('/static/product-title-script.js', (req, res) => {
 
 
 
-app.get("/remove-script.js", (req, res) => {
+// app.get("/remove-script.js", (req, res) => {
+//   res.set("Content-Type", "application/javascript");
+
+//   res.send(`
+//     const shop = window.location.hostname;
+
+//     async function removeProductSchema() {
+//       try {
+//         const tokenResponse = await fetch(\`https://server-page-xo9v.onrender.com/check-store?shop=\${shop}\`);
+//         const tokenData = await tokenResponse.json();
+
+//         if (tokenData && tokenData.accessToken) {
+//           const accessToken = tokenData.accessToken;
+//           const pathParts = window.location.pathname.split("/");
+
+//           if (pathParts[1] === "products") {
+//             const handle = pathParts[2];
+
+//             if (handle) {
+//               // Remove schema for a single product if on a specific product page
+//               const singleProductSchema = document.querySelector(\`script[data-product-handle="\${handle}"]\`);
+//               if (singleProductSchema) {
+//                 document.head.removeChild(singleProductSchema);
+//                 console.log(\`JSON-LD schema removed for product handle: \${handle}\`);
+//               } else {
+//                 console.warn(\`Schema not found for product handle: \${handle}\`);
+//               }
+//             } else {
+//               // Remove all product schemas if on the /products listing page
+//               const allProductSchemas = document.querySelectorAll('script[data-product-handle]');
+//               allProductSchemas.forEach(script => document.head.removeChild(script));
+//               console.log("All JSON-LD schemas removed for products.");
+//             }
+//           } else {
+//             console.warn("Not on products page.");
+//           }
+//         } else {
+//           console.warn("Access token not found for this shop.");
+//         }
+//       } catch (error) {
+//         console.error("Error fetching product data:", error);
+//       }
+//     }
+
+//     // Function call to initiate schema removal
+//     removeProductSchema();
+//   `);
+
+
+// });
+
+
+
+
+
+
+
+app.get('/remove-server-script', (req, res) => {
   res.set("Content-Type", "application/javascript");
 
+  // JavaScript to remove the script tag
   res.send(`
-    const shop = window.location.hostname;
-  
-    async function removeProductSchema() {
-      try {
-        const tokenResponse = await fetch(\`https://server-page-xo9v.onrender.com/check-store?shop=\${shop}\`);
-        const tokenData = await tokenResponse.json();
-  
-        if (tokenData && tokenData.accessToken) {
-          const accessToken = tokenData.accessToken;
-          const pathParts = window.location.pathname.split("/");
-  
-          if (pathParts[1] === "products") {
-            const handle = pathParts[2];
-  
-            if (handle) {
-              // Remove schema for a single product if on a specific product page
-              const singleProductSchema = document.querySelector(\`script[data-product-handle="\${handle}"]\`);
-              if (singleProductSchema) {
-                document.head.removeChild(singleProductSchema);
-                console.log(\`JSON-LD schema removed for product handle: \${handle}\`);
-              } else {
-                console.warn(\`Schema not found for product handle: \${handle}\`);
-              }
-            } else {
-              // Remove all product schemas if on the /products listing page
-              const allProductSchemas = document.querySelectorAll('script[data-product-handle]');
-              allProductSchemas.forEach(script => document.head.removeChild(script));
-              console.log("All JSON-LD schemas removed for products.");
-            }
-          } else {
-            console.warn("Not on products page.");
-          }
-        } else {
-          console.warn("Access token not found for this shop.");
-        }
-      } catch (error) {
-        console.error("Error fetching product data:", error);
+    async function removeServerScript() {
+      const scriptUrl = "https://server-page-xo9v.onrender.com/server-script.js";
+      
+      // Find the script tag
+      const scriptTag = document.querySelector('script[src="' + scriptUrl + '"]');
+      if (scriptTag) {
+        scriptTag.parentNode.removeChild(scriptTag);
+        console.log("Server script removed successfully.");
+      } else {
+        console.warn("Server script not found.");
       }
     }
   
-    // Function call to initiate schema removal
-    removeProductSchema();
+    removeServerScript();
   `);
 
-
 });
+
+
+
+
+
+
+
+
+
+
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
