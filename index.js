@@ -4,6 +4,9 @@ const cors = require('cors');
 app.use(cors());
 const mongoose = require('mongoose');
 
+const axios = require('axios');
+
+
 const DB = "mongodb+srv://spuspam111:Sp123456@cluster0.0taaaup.mongodb.net/scripttag?retryWrites=true&w=majority";
 mongoose.connect(DB)
   .then(() => {
@@ -913,7 +916,59 @@ app.get('/remove-server-script', (req, res) => {
 
 
 
+// insert scripttag for remove product from head
 
+
+app.get('/removetag', async (req, res) => {
+  const shop = 'demosaurav.myshopify.com';
+  const scriptUrl = "https://server-page-xo9v.onrender.com/server-script.js";
+
+  try {
+    // Fetch shop data
+    const shopData = await Shop.findOne({ shop: shop });
+
+    if (!shopData || !shopData.accessToken) {
+      return res.status(404).json({ message: `No access token found for store ${shop}` });
+    }
+
+    const accessToken = shopData.accessToken;
+
+    // Step 1: Check for existing script tags
+    const existingResponse = await axios.get(`https://${shop}/admin/api/2024-10/script_tags.json`, {
+      headers: {
+        "X-Shopify-Access-Token": accessToken,
+        "Content-Type": "application/json",
+      },
+    });
+
+    const existingData = existingResponse.data;
+
+    // Step 2: Normalize the script URL
+    const normalizedScriptUrl = new URL(scriptUrl).href;
+
+    // Step 3: Find the script tag ID to remove
+    const scriptTag = existingData.script_tags.find(tag => new URL(tag.src).href === normalizedScriptUrl);
+
+    if (scriptTag) {
+      // Step 4: Remove the script tag
+      await axios.delete(`https://${shop}/admin/api/2024-10/script_tags/${scriptTag.id}.json`, {
+        headers: {
+          "X-Shopify-Access-Token": accessToken,
+          "Content-Type": "application/json",
+        },
+      });
+
+      console.log(`Script tag removed for store ${shop}`);
+      return res.status(200).json({ message: `Script tag removed for store ${shop}` });
+    } else {
+      console.log(`No matching script tag found for store ${shop}`);
+      return res.status(404).json({ message: `No matching script tag found for store ${shop}` });
+    }
+  } catch (error) {
+    console.error(`Error removing script tag for store ${shop}:`, error.message);
+    return res.status(500).json({ message: `Error removing script tag for store ${shop}`, error: error.message });
+  }
+});
 
 
 
