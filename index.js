@@ -920,7 +920,9 @@ app.get('/remove-server-script', (req, res) => {
 
 
 app.get('/removetag', async (req, res) => {
-  const shop = 'demosaurav.myshopify.com';
+  // const shop = 'demosaurav.myshopify.com';
+  // const shop = window.location.hostname;
+  const shop = req.hostname;
   const scriptUrl = "https://server-page-xo9v.onrender.com/server-script.js";
 
   try {
