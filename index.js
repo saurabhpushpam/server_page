@@ -1446,14 +1446,14 @@ jsonLdScripts.forEach((script, index) => {
 
     // Check if the script contains a Product schema
     if (scriptContent['@type'] === 'Product') {
-      console.log("Removing Product Schema ${index + 1}:", scriptContent);
+      console.log("Removing Product Schema :", scriptContent);
       script.remove(); // Remove the script tag from the DOM
     } else {
-      // console.log("Keeping Schema ${index + 1}:", scriptContent);
+      // console.log("Keeping Schema :", scriptContent);
     console.log("Keeping Schema :", scriptContent);
     }
   } catch (error) {
-    console.error("Error parsing schema at index ${index + 1}", error);
+    console.error("Error parsing schema at index ", error);
   }
 });
 
