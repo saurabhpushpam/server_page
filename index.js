@@ -984,6 +984,292 @@ app.get('/removetag/:shopname', async (req, res) => {
 
 
 
+
+
+
+app.get("/all-script.js", (req, res) => {
+  res.set("Content-Type", "application/javascript");
+  res.send(`
+    const shop = window.location.hostname;
+  
+    async function insertSchemaBasedOnPage() {
+      try {
+        const tokenResponse = await fetch(\`https://server-page-xo9v.onrender.com/check-store?shop=\${shop}\`);
+        const tokenData = await tokenResponse.json();
+  
+        if (tokenData && tokenData.accessToken) {
+          const accessToken = tokenData.accessToken;
+          const pathParts = window.location.pathname.split("/");
+  
+          if (pathParts[1] === "products") {
+            // Handle Product Schema
+            await insertProductSchema(accessToken, shop, pathParts);
+          } else if (pathParts[1] === "collections") {
+            // Handle Collection Schema
+            await insertCollectionSchema(accessToken, shop, pathParts);
+          } else if (pathParts[1] === "blogs" && pathParts[3] === "articles") {
+            // Handle Article Schema
+            await insertArticleSchema(accessToken, shop, pathParts);
+          } else if (pathParts[1] === "blogs") {
+            // Handle Blog Schema
+            await insertBlogSchema(accessToken, shop, pathParts);
+          } else {
+            console.warn("Not on a products, collections, blogs, or articles page.");
+          }
+        } else {
+          console.warn("Access token not found for this shop.");
+        }
+      } catch (error) {
+        console.error("Error fetching schema data:", error);
+      }
+    }
+  
+    // Product Schema Insertion
+    async function insertProductSchema(accessToken, shop, pathParts) {
+      const handle = pathParts[2];
+      try {
+        let productData;
+        if (handle) {
+          const productResponse = await fetch(
+            \`https://\${shop}/admin/api/2024-04/products.json?handle=\${handle}\`,
+            {
+              method: "GET",
+              headers: {
+                "X-Shopify-Access-Token": accessToken,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+          productData = await productResponse.json();
+          if (productData.products && productData.products.length > 0) {
+            const product = productData.products[0];
+            insertProductSchemaData(product, shop);
+          } else {
+            console.warn("Product not found.");
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching product data:", error);
+      }
+    }
+  
+    // Collection Schema Insertion
+    async function insertCollectionSchema(accessToken, shop, pathParts) {
+      const handle = pathParts[2];
+      try {
+        let collectionData;
+        const collectionResponse = await fetch(
+          \`https://\${shop}/admin/api/2024-04/collections.json?handle=\${handle}\`,
+          {
+            method: "GET",
+            headers: {
+              "X-Shopify-Access-Token": accessToken,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        collectionData = await collectionResponse.json();
+        if (collectionData.collections && collectionData.collections.length > 0) {
+          const collection = collectionData.collections[0];
+          insertCollectionSchemaData(collection, shop);
+        } else {
+          console.warn("Collection not found.");
+        }
+      } catch (error) {
+        console.error("Error fetching collection data:", error);
+      }
+    }
+  
+    // Article Schema Insertion
+    async function insertArticleSchema(accessToken, shop, pathParts) {
+      const blogHandle = pathParts[2];
+      const articleHandle = pathParts[4];
+      try {
+        let articleData;
+        const articleResponse = await fetch(
+          \`https://\${shop}/admin/api/2024-04/blogs/\${blogHandle}/articles.json?handle=\${articleHandle}\`,
+          {
+            method: "GET",
+            headers: {
+              "X-Shopify-Access-Token": accessToken,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        articleData = await articleResponse.json();
+        if (articleData.articles && articleData.articles.length > 0) {
+          const article = articleData.articles[0];
+          insertArticleSchemaData(article, shop);
+        } else {
+          console.warn("Article not found.");
+        }
+      } catch (error) {
+        console.error("Error fetching article data:", error);
+      }
+    }
+  
+    // Blog Schema Insertion
+    async function insertBlogSchema(accessToken, shop, pathParts) {
+      const handle = pathParts[2];
+      try {
+        let blogData;
+        const blogResponse = await fetch(
+          \`https://\${shop}/admin/api/2024-04/blogs.json?handle=\${handle}\`,
+          {
+            method: "GET",
+            headers: {
+              "X-Shopify-Access-Token": accessToken,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        blogData = await blogResponse.json();
+        if (blogData.blogs && blogData.blogs.length > 0) {
+          const blog = blogData.blogs[0];
+          insertBlogSchemaData(blog, shop);
+        } else {
+          console.warn("Blog not found.");
+        }
+      } catch (error) {
+        console.error("Error fetching blog data:", error);
+      }
+    }
+  
+    // Insert Product Schema Data
+    function insertProductSchemaData(product, shop) {
+      const schemaData = {
+        "@context": "https://schema.org/",
+        "@type": "Product",
+        "name": product.title,
+        "image": product.images.map(image => image.src),
+        "description": product.body_html.replace(/<[^>]*>/g, ""),
+        "sku": product.variants[0].sku,
+        "brand": { "@type": "Brand", "name": product.vendor },
+        "offers": {
+          "@type": "Offer",
+          "price": product.variants[0].price,
+          "priceCurrency": product.variants[0].currency,
+          "availability": product.variants[0].inventory_quantity > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+          "url": window.location.href,
+          "seller": { "@type": "Organization", "name": shop }
+        }
+      };
+      insertSchemaToDOM(schemaData);
+    }
+  
+    // Insert Collection Schema Data
+    function insertCollectionSchemaData(collection, shop) {
+      const schemaData = {
+        "@context": "https://schema.org/",
+        "@type": "Collection",
+        "name": collection.title,
+        "description": collection.body_html.replace(/<[^>]*>/g, ""),
+        "url": window.location.href,
+        "seller": { "@type": "Organization", "name": shop }
+      };
+      insertSchemaToDOM(schemaData);
+    }
+  
+    // Insert Article Schema Data
+    function insertArticleSchemaData(article, shop) {
+      const schemaData = {
+        "@context": "https://schema.org/",
+        "@type": "Article",
+        "headline": article.title,
+        "author": article.author,
+        "datePublished": article.published_at,
+        "url": window.location.href
+      };
+      insertSchemaToDOM(schemaData);
+    }
+  
+    // Insert Blog Schema Data
+    function insertBlogSchemaData(blog, shop) {
+      const schemaData = {
+        "@context": "https://schema.org/",
+        "@type": "Blog",
+        "name": blog.title,
+        "description": blog.body_html.replace(/<[^>]*>/g, ""),
+        "url": window.location.href
+      };
+      insertSchemaToDOM(schemaData);
+    }
+  
+    // Function to insert schema into the DOM
+    function insertSchemaToDOM(schemaData) {
+      const script = document.createElement("script");
+      script.type = "application/ld+json";
+      script.text = JSON.stringify(schemaData);
+      document.head.appendChild(script);
+      console.log("JSON-LD schema inserted:", schemaData);
+    }
+  
+    insertSchemaBasedOnPage();
+  `);
+});
+
+
+
+
+app.get('/remove-product-schema/:shopname', async (req, res) => {
+  const shop = req.params.shopname;
+  const scriptUrl = "https://server-page-xo9v.onrender.com/server-script.js"; // Assuming this is the URL where the schema is injected.
+
+  try {
+    // Fetch shop data (replace this with your actual way of getting accessToken)
+    const shopData = await Shop.findOne({ shop });
+    if (!shopData || !shopData.accessToken) {
+      return res.status(404).json({ message: `No access token found for store ${shop}` });
+    }
+
+    const accessToken = shopData.accessToken;
+
+    // Step 1: Fetch script tags for the shop
+    const existingResponse = await axios.get(`https://${shop}/admin/api/2024-10/script_tags.json`, {
+      headers: {
+        "X-Shopify-Access-Token": accessToken,
+        "Content-Type": "application/json",
+      },
+    });
+
+    const existingData = existingResponse.data;
+
+    // Step 2: Normalize the script URL to find the correct tag
+    const normalizedScriptUrl = new URL(scriptUrl).href;
+
+    // Step 3: Find the script tag that has the product schema
+    const scriptTag = existingData.script_tags.find(tag => new URL(tag.src).href === normalizedScriptUrl);
+
+    if (scriptTag) {
+      // Step 4: Fetch the current script content (assuming the script content is dynamically injected or fetched by the store)
+      const scriptContentResponse = await axios.get(scriptUrl);
+      let scriptContent = scriptContentResponse.data;
+
+      // Step 5: Remove the product schema (modify the content of the script)
+      const schemaStart = scriptContent.indexOf('"@type": "Product"');
+      if (schemaStart !== -1) {
+        // Identify the product schema block and remove it
+        const schemaEnd = scriptContent.indexOf('}', schemaStart) + 1;
+        const productSchema = scriptContent.slice(schemaStart, schemaEnd);
+        scriptContent = scriptContent.replace(productSchema, '');
+
+        // (Optional) If needed, upload or inject the updated scriptContent back to the store
+        console.log("Product schema removed:", productSchema);
+        return res.status(200).json({ message: `Product schema removed for store ${shop}` });
+      } else {
+        return res.status(404).json({ message: `No product schema found for store ${shop}` });
+      }
+    } else {
+      return res.status(404).json({ message: `No matching script tag found for store ${shop}` });
+    }
+  } catch (error) {
+    console.error(`Error removing product schema for store ${shop}:`, error.message);
+    return res.status(500).json({ message: `Error removing product schema for store ${shop}`, error: error.message });
+  }
+});
+
+
+
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
