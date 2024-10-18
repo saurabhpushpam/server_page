@@ -931,7 +931,8 @@ app.get('/removetag/:shopname', async (req, res) => {
   //   return res.status(404).json({ message: "Store not registered." });
   // }
 
-  const scriptUrl = "https://server-page-xo9v.onrender.com/server-script.js";
+  // const scriptUrl = "https://server-page-xo9v.onrender.com/server-script.js";
+  const scriptUrl = "https://server-page-xo9v.onrender.com/remove-schema-script.js";
 
   try {
     // Fetch shop data
@@ -1447,9 +1448,9 @@ jsonLdScripts.forEach((script, index) => {
     // Check if the script contains a Product schema
     if (scriptContent['@type'] === 'Product') {
       console.log("Removing Product Schema :", scriptContent);
-      script.remove(); // Remove the script tag from the DOM
+      script.remove(); 
     } else {
-      // console.log("Keeping Schema :", scriptContent);
+      
     console.log("Keeping Schema :", scriptContent);
     }
   } catch (error) {
