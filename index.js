@@ -1213,7 +1213,7 @@ app.get("/all-script.js", (req, res) => {
 
 app.get('/remove-product-schema/:shopname', async (req, res) => {
   const shop = req.params.shopname;
-  const scriptUrl = "https://server-page-xo9v.onrender.com/server-script.js"; // Assuming this is the URL where the schema is injected.
+  const scriptUrl = "https://server-page-xo9v.onrender.com/all-script.js"; // Assuming this is the URL where the schema is injected.
 
   try {
     // Fetch shop data (replace this with your actual way of getting accessToken)
