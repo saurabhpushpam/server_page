@@ -1366,12 +1366,12 @@ app.get("/product-script.js", (req, res) => {
 
 
 
-
 app.get('/remove-product-schema/:shopname', async (req, res) => {
   const shop = req.params.shopname;
+  const scriptUrl = "https://server-page-xo9v.onrender.com/product-script.js"; // URL where schema was injected
 
   try {
-    // Fetch shop data to get access token
+    // Fetch shop data (replace this with your actual method to get accessToken)
     const shopData = await Shop.findOne({ shop });
     if (!shopData || !shopData.accessToken) {
       return res.status(404).json({ message: `No access token found for store ${shop}` });
@@ -1379,55 +1379,43 @@ app.get('/remove-product-schema/:shopname', async (req, res) => {
 
     const accessToken = shopData.accessToken;
 
-    // Step 1: Get theme ID
-    const themesResponse = await axios.get(`https://${shop}/admin/api/2024-10/themes.json`, {
+    // Step 1: Fetch script tags for the shop
+    const scriptTagsResponse = await axios.get(`https://${shop}/admin/api/2024-10/script_tags.json`, {
       headers: {
         "X-Shopify-Access-Token": accessToken,
         "Content-Type": "application/json",
       },
     });
 
-    const theme = themesResponse.data.themes.find(theme => theme.role === 'main');
-    if (!theme) {
-      return res.status(404).json({ message: `No main theme found for store ${shop}` });
-    }
+    const scriptTags = scriptTagsResponse.data.script_tags;
 
-    const themeId = theme.id;
+    // Step 2: Normalize the script URL to match the one you inserted
+    const normalizedScriptUrl = new URL(scriptUrl).href;
 
-    // Step 2: Fetch the product template file (assuming product schema is in 'product.liquid')
-    const assetResponse = await axios.get(`https://${shop}/admin/api/2024-10/themes/${themeId}/assets.json`, {
-      params: { "asset[key]": "templates/product.liquid" },  // Adjust the path based on your theme's structure
-      headers: {
-        "X-Shopify-Access-Token": accessToken,
-        "Content-Type": "application/json",
-      },
-    });
+    // Step 3: Find the script tag that matches your script URL
+    const matchingScriptTag = scriptTags.find(tag => new URL(tag.src).href === normalizedScriptUrl);
 
-    let productTemplateContent = assetResponse.data.asset.value;
+    if (matchingScriptTag) {
+      // Step 4: Fetch the content of the script from the URL
+      const scriptContentResponse = await axios.get(scriptUrl);
+      let scriptContent = scriptContentResponse.data;
 
-    // Step 3: Remove the product schema
-    const schemaStart = productTemplateContent.indexOf('"@type": "Product"');
-    if (schemaStart !== -1) {
-      const schemaEnd = productTemplateContent.indexOf('}', schemaStart) + 1;
-      const productSchema = productTemplateContent.slice(schemaStart, schemaEnd);
-      productTemplateContent = productTemplateContent.replace(productSchema, '');
+      // Step 5: Find and remove the product schema in the script
+      const schemaStart = scriptContent.indexOf('"@type": "Product"');
+      if (schemaStart !== -1) {
+        // Identify the schema block and remove it
+        const schemaEnd = scriptContent.indexOf('}', schemaStart) + 1;
+        const productSchema = scriptContent.slice(schemaStart, schemaEnd);
+        scriptContent = scriptContent.replace(productSchema, '');
 
-      // Step 4: Update the product template file
-      const updateResponse = await axios.put(`https://${shop}/admin/api/2024-10/themes/${themeId}/assets.json`, {
-        asset: {
-          key: "templates/product.liquid",
-          value: productTemplateContent,
-        },
-      }, {
-        headers: {
-          "X-Shopify-Access-Token": accessToken,
-          "Content-Type": "application/json",
-        },
-      });
-
-      return res.status(200).json({ message: `Product schema removed for store ${shop}` });
+        // Step 6: (Optional) Re-inject the updated script back to the store
+        console.log("Product schema removed:", productSchema);
+        return res.status(200).json({ message: `Product schema removed for store ${shop}` });
+      } else {
+        return res.status(404).json({ message: `No product schema found in the script for store ${shop}` });
+      }
     } else {
-      return res.status(404).json({ message: `No product schema found in the theme for store ${shop}` });
+      return res.status(404).json({ message: `No matching script tag found for store ${shop}` });
     }
   } catch (error) {
     console.error(`Error removing product schema for store ${shop}:`, error.message);
