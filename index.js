@@ -919,11 +919,11 @@ app.get('/remove-server-script', (req, res) => {
 // insert scripttag for remove product from head
 
 
-// app.get('/removetag/:shopname', async (req, res) => {
-app.get('/removetag', async (req, res) => {
-  const shop = 'demosaurav.myshopify.com';
+app.get('/removetag/:shopname', async (req, res) => {
+
+  // const shop = 'demosaurav.myshopify.com';
   // const shop = window.location.hostname;
-  // const shop = req.params.shopname;
+  const shop = req.params.shopname;
   // const store = await Shop.findOne({ shop });
   // const accessToken = store.accessToken;
 
@@ -931,7 +931,7 @@ app.get('/removetag', async (req, res) => {
   //   return res.status(404).json({ message: "Store not registered." });
   // }
 
-  const scriptUrl = "https://server-page-xo9v.onrender.com/all-script.js";
+  const scriptUrl = "https://server-page-xo9v.onrender.com/server-script.js";
 
   try {
     // Fetch shop data
