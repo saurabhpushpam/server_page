@@ -930,7 +930,7 @@ app.get('/removetag/:shopname', async (req, res) => {
   //   return res.status(404).json({ message: "Store not registered." });
   // }
 
-  const scriptUrl = "https://server-page-xo9v.onrender.com/server-script.js";
+  const scriptUrl = "https://server-page-xo9v.onrender.com/all-script.js";
 
   try {
     // Fetch shop data
