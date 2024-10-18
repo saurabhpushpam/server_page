@@ -1366,7 +1366,6 @@ app.get("/product-script.js", (req, res) => {
 
 
 
-const axios = require("axios");
 
 app.get('/remove-product-schema/:shopname', async (req, res) => {
   const shop = req.params.shopname;
