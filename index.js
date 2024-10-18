@@ -931,8 +931,8 @@ app.get('/removetag/:shopname', async (req, res) => {
   //   return res.status(404).json({ message: "Store not registered." });
   // }
 
-  // const scriptUrl = "https://server-page-xo9v.onrender.com/server-script.js";
-  const scriptUrl = "https://server-page-xo9v.onrender.com/remove-schema-script.js";
+  const scriptUrl = "https://server-page-xo9v.onrender.com/product-script.js";
+  // const scriptUrl = "https://server-page-xo9v.onrender.com/remove-schema-script.js";
 
   try {
     // Fetch shop data
@@ -1431,84 +1431,99 @@ app.get("/product-script.js", (req, res) => {
 
 
 
-app.get('/remove-schema-script.js', async (req, res) => {
-  res.set("Content-Type", "application/javascript");
+// app.get('/remove-schema-script.js', async (req, res) => {
+//   res.set("Content-Type", "application/javascript");
 
-  res.send(`
+//   res.send(`
 
-// Find all JSON-LD script tags
-const jsonLdScripts = document.querySelectorAll('script[type="application/ld+json"]');
+// // Find all JSON-LD script tags
+// const jsonLdScripts = document.querySelectorAll('script[type="application/ld+json"]');
 
-// Loop through each script tag and remove those with "@type": "Product"
-jsonLdScripts.forEach((script, index) => {
-  try {
-    // Parse the script content
-    const scriptContent = JSON.parse(script.textContent);
+// // Loop through each script tag and remove those with "@type": "Product"
+// jsonLdScripts.forEach((script, index) => {
+//   try {
+//     // Parse the script content
+//     const scriptContent = JSON.parse(script.textContent);
 
-    // Check if the script contains a Product schema
-    if (scriptContent['@type'] === 'Product') {
-      console.log("Removing Product Schema :", scriptContent);
-      script.remove(); 
-    } else {
-      
-    console.log("Keeping Schema :", scriptContent);
-    }
-  } catch (error) {
-    console.error("Error parsing schema at index ", error);
-  }
-});
+//     // Check if the script contains a Product schema
+//     if (scriptContent['@type'] === 'Product') {
+//       console.log("Removing Product Schema :", scriptContent);
+//       script.remove(); 
+//     } else {
 
-`)
-});
+//     console.log("Keeping Schema :", scriptContent);
+//     }
+//   } catch (error) {
+//     console.error("Error parsing schema at index ", error);
+//   }
+// });
+
+// `)
+// });
 
 
-app.get('/remove-product-schema/:shopname', async (req, res) => {
-  const shop = req.params.shopname;
-  const removalScriptUrl = "https://server-page-xo9v.onrender.com/remove-schema-script.js"; // This script contains the logic to remove the schema.
 
-  try {
-    const shopData = await Shop.findOne({ shop });
-    if (!shopData || !shopData.accessToken) {
-      return res.status(404).json({ message: `No access token found for store ${shop}` });
-    }
 
-    const accessToken = shopData.accessToken;
 
-    // Step 1: Check if the removal script is already added
-    const scriptTagsResponse = await axios.get(`https://${shop}/admin/api/2024-10/script_tags.json`, {
-      headers: {
-        "X-Shopify-Access-Token": accessToken,
-        "Content-Type": "application/json",
-      },
-    });
 
-    const scriptTags = scriptTagsResponse.data.script_tags;
 
-    // Step 2: Check if the removal script is already present
-    const matchingScriptTag = scriptTags.find(tag => tag.src === removalScriptUrl);
-    if (matchingScriptTag) {
-      return res.status(200).json({ message: "Schema removal script is already injected." });
-    }
 
-    // Step 3: If not, inject the script tag that removes the product schema
-    await axios.post(`https://${shop}/admin/api/2024-10/script_tags.json`, {
-      script_tag: {
-        event: "onload",
-        src: removalScriptUrl
-      }
-    }, {
-      headers: {
-        "X-Shopify-Access-Token": accessToken,
-        "Content-Type": "application/json",
-      }
-    });
 
-    return res.status(200).json({ message: `Schema removal script injected successfully for store ${shop}` });
-  } catch (error) {
-    console.error(`Error injecting schema removal script for store ${shop}:`, error.message);
-    return res.status(500).json({ message: `Error injecting schema removal script for store ${shop}`, error: error.message });
-  }
-});
+
+
+
+
+
+
+
+
+// app.get('/remove-product-schema/:shopname', async (req, res) => {
+//   const shop = req.params.shopname;
+//   const removalScriptUrl = "https://server-page-xo9v.onrender.com/remove-schema-script.js"; // This script contains the logic to remove the schema.
+
+//   try {
+//     const shopData = await Shop.findOne({ shop });
+//     if (!shopData || !shopData.accessToken) {
+//       return res.status(404).json({ message: `No access token found for store ${shop}` });
+//     }
+
+//     const accessToken = shopData.accessToken;
+
+//     // Step 1: Check if the removal script is already added
+//     const scriptTagsResponse = await axios.get(`https://${shop}/admin/api/2024-10/script_tags.json`, {
+//       headers: {
+//         "X-Shopify-Access-Token": accessToken,
+//         "Content-Type": "application/json",
+//       },
+//     });
+
+//     const scriptTags = scriptTagsResponse.data.script_tags;
+
+//     // Step 2: Check if the removal script is already present
+//     const matchingScriptTag = scriptTags.find(tag => tag.src === removalScriptUrl);
+//     if (matchingScriptTag) {
+//       return res.status(200).json({ message: "Schema removal script is already injected." });
+//     }
+
+//     // Step 3: If not, inject the script tag that removes the product schema
+//     await axios.post(`https://${shop}/admin/api/2024-10/script_tags.json`, {
+//       script_tag: {
+//         event: "onload",
+//         src: removalScriptUrl
+//       }
+//     }, {
+//       headers: {
+//         "X-Shopify-Access-Token": accessToken,
+//         "Content-Type": "application/json",
+//       }
+//     });
+
+//     return res.status(200).json({ message: `Schema removal script injected successfully for store ${shop}` });
+//   } catch (error) {
+//     console.error(`Error injecting schema removal script for store ${shop}:`, error.message);
+//     return res.status(500).json({ message: `Error injecting schema removal script for store ${shop}`, error: error.message });
+//   }
+// });
 
 
 
