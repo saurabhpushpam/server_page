@@ -276,7 +276,7 @@ app.get("/server-script.js", (req, res) => {
         "@context": "https://schema.org/",
         "@type": "Product",
         "name": product.title,
-        "shipping_fee": 500,
+        "shipping_fee": 100,
         "shipping_Address": "India",
         "image": product.images.map(image => image.src),
         "description": product.body_html.replace(/<[^>]*>/g, ""),
@@ -923,11 +923,20 @@ app.get('/removetag/:shopname', async (req, res) => {
   // const shop = 'demosaurav.myshopify.com';
   // const shop = window.location.hostname;
   const shop = req.params.shopname;
+  // const store = await Shop.findOne({ shop });
+  // const accessToken = store.accessToken;
+
+  // if (!store) {
+  //   return res.status(404).json({ message: "Store not registered." });
+  // }
+
   const scriptUrl = "https://server-page-xo9v.onrender.com/server-script.js";
 
   try {
     // Fetch shop data
-    const shopData = await Shop.findOne({ shop: shop });
+    // const store = await Shop.findOne({ shop });
+    const shopData = await Shop.findOne({ shop });
+    console.log(shopData);
 
     if (!shopData || !shopData.accessToken) {
       return res.status(404).json({ message: `No access token found for store ${shop}` });
