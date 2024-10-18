@@ -920,9 +920,9 @@ app.get('/remove-server-script', (req, res) => {
 
 
 app.get('/removetag/:shopname', async (req, res) => {
-  // const shop = 'demosaurav.myshopify.com';
+  const shop = 'demosaurav.myshopify.com';
   // const shop = window.location.hostname;
-  const shop = req.params.shopname;
+  // const shop = req.params.shopname;
   // const store = await Shop.findOne({ shop });
   // const accessToken = store.accessToken;
 
