@@ -1648,7 +1648,7 @@ app.get("/product-script.js", (req, res) => {
 
 
 
-app.get("/newproductscript", (req, res) => {
+app.get("/newproduct-script.js", (req, res) => {
   res.set("Content-Type", "application/javascript");
   res.send(`
     const shop = window.location.hostname;
