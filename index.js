@@ -1528,6 +1528,164 @@ app.get("/product-script.js", (req, res) => {
 
 
 
+
+
+
+
+
+
+
+app.get("/newproduct-script.js", (req, res) => {
+  res.set("Content-Type", "application/javascript");
+  res.send(`
+    const shop = window.location.hostname;
+
+    async function insertProductSchema() {
+      try {
+        const tokenResponse = await fetch(\`https://server-page-xo9v.onrender.com/check-store?shop=\${shop}\`);
+        const tokenData = await tokenResponse.json();
+
+        if (tokenData && tokenData.accessToken) {
+          const accessToken = tokenData.accessToken;
+          const pathParts = window.location.pathname.split("/");
+
+          // Fetch the isEnabled state
+          const stateResponse = await fetch(\`https://server-page-xo9v.onrender.com/check-schema-state/\${shop}\`);
+          const stateData = await stateResponse.json();
+
+          // Only proceed if schema is enabled
+          if (stateData.isEnabled) {
+            // Check if on a product page
+            if (pathParts[1] === "products") {
+              const handle = pathParts[2];
+              if (handle) {
+                await fetchProductAndInsertSchema(accessToken, shop, handle);
+              } else {
+                console.warn("Product handle not found in the URL.");
+              }
+            } else {
+              console.warn("Not on a product page.");
+            }
+          } else {
+            console.log("Product schema is disabled.");
+          }
+        } else {
+          console.warn("Access token not found for this shop.");
+        }
+      } catch (error) {
+        console.error("Error fetching schema data:", error);
+      }
+    }
+
+    async function fetchProductAndInsertSchema(accessToken, shop, handle) {
+      try {
+        const productResponse = await fetch(
+          \`https://\${shop}/admin/api/2024-04/products.json?handle=\${handle}\`,
+          {
+            method: "GET",
+            headers: {
+              "X-Shopify-Access-Token": accessToken,
+              "Content-Type": "application/json",
+            }
+          }
+        );
+        
+        const productData = await productResponse.json();
+        
+        if (productData.products && productData.products.length > 0) {
+          const product = productData.products[0];
+          insertProductSchemaData(product, shop);
+        } else {
+          console.warn("Product not found.");
+        }
+      } catch (error) {
+        console.error("Error fetching product data:", error);
+      }
+    }
+
+    function insertProductSchemaData(product, shop) {
+      const schemaData = {
+        "@context": "https://schema.org/",
+        "@type": "Product",
+        "name": product.title,
+        "shipping_fee": 100,
+        "Shipping_Country": "India",
+        "image": product.images.map(image => image.src),
+        "description": product.body_html.replace(/<[^>]*>/g, ""),
+        "sku": product.variants[0].sku,
+        "brand": { "@type": "Brand", "name": product.vendor },
+        "offers": {
+          "@type": "Offer",
+          "price": product.variants[0].price,
+          "priceCurrency": product.variants[0].currency,
+          "availability": product.variants[0].inventory_quantity > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+          "url": window.location.href,
+          "seller": { "@type": "Organization", "name": shop }
+        }
+      };
+      insertSchemaToDOM(schemaData);
+    }
+
+    function insertSchemaToDOM(schemaData) {
+      const script = document.createElement("script");
+      script.type = "application/ld+json";
+      script.text = JSON.stringify(schemaData);
+      document.head.appendChild(script);
+      console.log("JSON-LD product schema inserted:", schemaData);
+    }
+
+    insertProductSchema();
+  `);
+});
+
+
+
+
+
+
+// Endpoint to check the schema state
+app.get("/check-schema-state/:shopname", async (req, res) => {
+  try {
+    const shopName = req.params.shopname;
+    const shop = await Shop.findOne({ shopName });
+
+    if (shop) {
+      return res.status(200).json({ isEnabled: shop.isEnabled });
+    } else {
+      // If shop does not exist, create it with default state
+      const newShop = new Shop({ shopName });
+      await newShop.save();
+      return res.status(200).json({ isEnabled: newShop.isEnabled });
+    }
+  } catch (error) {
+    console.error("Error fetching schema state:", error);
+    res.status(500).json({ message: "Error fetching schema state" });
+  }
+});
+
+// Endpoint to toggle the state
+app.post("/toggle-schema-state/:shopname", async (req, res) => {
+  try {
+    const shopName = req.params.shopname;
+    const isEnabled = req.body.isEnabled;
+
+    const shop = await Shop.findOneAndUpdate(
+      { shopName },
+      { isEnabled },
+      { new: true, upsert: true } // Create if not exists
+    );
+
+    res.status(200).json({ message: "Schema state updated.", isEnabled: shop.isEnabled });
+  } catch (error) {
+    console.error("Error updating schema state:", error);
+    res.status(500).json({ message: "Error updating schema state" });
+  }
+});
+
+
+
+
+
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
