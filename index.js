@@ -20,6 +20,7 @@ mongoose.connect(DB)
 const Shop = mongoose.model('Shop', new mongoose.Schema({
   shop: { type: String, required: true, unique: true },
   accessToken: { type: String, required: true },
+  isEnabled: { type: String, default: false }
 }));
 
 
@@ -1647,13 +1648,13 @@ app.get("/newproduct-script.js", (req, res) => {
 app.get("/check-schema-state/:shopname", async (req, res) => {
   try {
     const shopName = req.params.shopname;
-    const shop = await Shop.findOne({ shopName });
+    const shop = await Shop.findOne({ shop: shopName });
 
     if (shop) {
       return res.status(200).json({ isEnabled: shop.isEnabled });
     } else {
       // If shop does not exist, create it with default state
-      const newShop = new Shop({ shopName });
+      const newShop = new Shop({ shop: shopName });
       await newShop.save();
       return res.status(200).json({ isEnabled: newShop.isEnabled });
     }
@@ -1663,25 +1664,23 @@ app.get("/check-schema-state/:shopname", async (req, res) => {
   }
 });
 
-// Endpoint to toggle the state
-app.post("/toggle-schema-state/:shopname", async (req, res) => {
+
+app.post("/update-state/:shopname/:isEnable", async (req, res) => {
   try {
     const shopName = req.params.shopname;
-    const isEnabled = req.body.isEnabled;
+    const value = req.params.isEnable;
 
-    const shop = await Shop.findOneAndUpdate(
-      { shopName },
-      { isEnabled },
-      { new: true, upsert: true } // Create if not exists
+    const updatedShop = await Shop.findOneAndUpdate(
+      { shop: shopName }, // Find document by shopName
+      { $set: { isEnabled: value } }, // Use $set to update only specific fields
+      { new: true, upsert: false } // Return the updated document
     );
-
-    res.status(200).json({ message: "Schema state updated.", isEnabled: shop.isEnabled });
+    res.status(200).send({ success: true, data: updatedShop })
   } catch (error) {
-    console.error("Error updating schema state:", error);
-    res.status(500).json({ message: "Error updating schema state" });
-  }
-});
+    res.status(500).json({ message: "Error fetching schema state" });
 
+  }
+})
 
 
 
