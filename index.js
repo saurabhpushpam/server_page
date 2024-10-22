@@ -1773,125 +1773,135 @@ app.get("/product-script.js", (req, res) => {
 
 
 
+// app.get("/newproduct-script.js", (req, res) => {
+//   res.set("Content-Type", "application/javascript");
+//   res.send(`
+//     const shop = window.location.hostname;
+
+//     async function insertProductSchema() {
+//       try {
+//         const tokenResponse = await fetch('https://server-page-xo9v.onrender.com/check-store?shop=' + shop);
+//         const tokenData = await tokenResponse.json();
+
+//         if (tokenData && tokenData.accessToken) {
+//           const accessToken = tokenData.accessToken;
+//           const pathParts = window.location.pathname.split("/");
+
+//           // Fetch the isEnabled state
+//           const stateResponse = await fetch('https://server-page-xo9v.onrender.com/check-schema-state/' + shop);
+//           const stateData = await stateResponse.json();
+
+//           // Check if on a product page
+//           if (pathParts[1] === "products") {
+//             const handle = pathParts[2];
+//             if (handle) {
+//               if (stateData.isEnabled == 'true') {
+//                 // If schema is enabled, insert schema
+//                 await fetchProductAndInsertSchema(accessToken, shop, handle);
+//               } else {
+//                 // If schema is disabled, remove schema
+//                 removeProductSchema();
+//                 console.log("Product schema is disabled.");
+//               }
+//             } else {
+//               console.warn("Product handle not found in the URL.");
+//             }
+//           } else {
+//             console.warn("Not on a product page.");
+//           }
+//         } else {
+//           console.warn("Access token not found for this shop.");
+//         }
+//       } catch (error) {
+//         console.error("Error fetching schema data:", error);
+//       }
+//     }
+
+//     async function fetchProductAndInsertSchema(accessToken, shop, handle) {
+//       try {
+//         const productResponse = await fetch(
+//           'https://' + shop + '/admin/api/2024-04/products.json?handle=' + handle,
+//           {
+//             method: "GET",
+//             headers: {
+//               "X-Shopify-Access-Token": accessToken,
+//               "Content-Type": "application/json",
+//             }
+//           }
+//         );
+
+//         const productData = await productResponse.json();
+
+//         if (productData.products && productData.products.length > 0) {
+//           const product = productData.products[0];
+//           insertProductSchemaData(product, shop);
+//         } else {
+//           console.warn("Product not found.");
+//         }
+//       } catch (error) {
+//         console.error("Error fetching product data:", error);
+//       }
+//     }
+
+//     function insertProductSchemaData(product, shop) {
+//       const schemaData = {
+//         "@context": "https://schema.org/",
+//         "@type": "Product",
+//         "name": product.title,
+//         "shipping_fee": 800,
+//         "Shipping_Country": "India",
+//         "image": product.images.map(image => image.src),
+//         "description": product.body_html.replace(/<[^>]*>/g, ""),
+//         "sku": product.variants[0].sku,
+//         "brand": { "@type": "Brand", "name": product.vendor },
+//         "offers": {
+//           "@type": "Offer",
+//           "price": product.variants[0].price,
+//           "priceCurrency": product.variants[0].currency,
+//           "availability": product.variants[0].inventory_quantity > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+//           "url": window.location.href,
+//           "seller": { "@type": "Organization", "name": shop }
+//         }
+//       };
+//       insertSchemaToDOM(schemaData);
+//     }
+
+//     function insertSchemaToDOM(schemaData) {
+//       const script = document.createElement("script");
+//       script.type = "application/ld+json";
+//       script.text = JSON.stringify(schemaData);
+//       document.head.appendChild(script);
+//       console.log("JSON-LD product schema inserted:", schemaData);
+//     }
+
+//     // Function to remove all relevant product schema
+//     function removeProductSchema() {
+//       const jsonLdScripts = document.querySelectorAll('script[type="application/ld+json"]');
+//       jsonLdScripts.forEach((script) => {
+//         try {
+//           const schemaData = JSON.parse(script.textContent);
+//           if (schemaData['@type'] === "Product") {
+//             script.remove(); // Remove only the product-related schema
+//             console.log("Product schema removed.");
+//           }
+//         } catch (error) {
+//           console.error("Error parsing JSON-LD schema for removal:", error);
+//         }
+//       });
+//     }
+
+//     // Call the function to manage the schema
+//     insertProductSchema();
+//   `);
+// });
+
+
+
+
 app.get("/newproduct-script.js", (req, res) => {
   res.set("Content-Type", "application/javascript");
   res.send(`
-    const shop = window.location.hostname;
-
-    async function insertProductSchema() {
-      try {
-        const tokenResponse = await fetch('https://server-page-xo9v.onrender.com/check-store?shop=' + shop);
-        const tokenData = await tokenResponse.json();
-
-        if (tokenData && tokenData.accessToken) {
-          const accessToken = tokenData.accessToken;
-          const pathParts = window.location.pathname.split("/");
-
-          // Fetch the isEnabled state
-          const stateResponse = await fetch('https://server-page-xo9v.onrender.com/check-schema-state/' + shop);
-          const stateData = await stateResponse.json();
-
-          // Check if on a product page
-          if (pathParts[1] === "products") {
-            const handle = pathParts[2];
-            if (handle) {
-              if (stateData.isEnabled == 'true') {
-                // If schema is enabled, insert schema
-                await fetchProductAndInsertSchema(accessToken, shop, handle);
-              } else {
-                // If schema is disabled, remove schema
-                removeProductSchema();
-                console.log("Product schema is disabled.");
-              }
-            } else {
-              console.warn("Product handle not found in the URL.");
-            }
-          } else {
-            console.warn("Not on a product page.");
-          }
-        } else {
-          console.warn("Access token not found for this shop.");
-        }
-      } catch (error) {
-        console.error("Error fetching schema data:", error);
-      }
-    }
-
-    async function fetchProductAndInsertSchema(accessToken, shop, handle) {
-      try {
-        const productResponse = await fetch(
-          'https://' + shop + '/admin/api/2024-04/products.json?handle=' + handle,
-          {
-            method: "GET",
-            headers: {
-              "X-Shopify-Access-Token": accessToken,
-              "Content-Type": "application/json",
-            }
-          }
-        );
-
-        const productData = await productResponse.json();
-
-        if (productData.products && productData.products.length > 0) {
-          const product = productData.products[0];
-          insertProductSchemaData(product, shop);
-        } else {
-          console.warn("Product not found.");
-        }
-      } catch (error) {
-        console.error("Error fetching product data:", error);
-      }
-    }
-
-    function insertProductSchemaData(product, shop) {
-      const schemaData = {
-        "@context": "https://schema.org/",
-        "@type": "Product",
-        "name": product.title,
-        "shipping_fee": 800,
-        "Shipping_Country": "India",
-        "image": product.images.map(image => image.src),
-        "description": product.body_html.replace(/<[^>]*>/g, ""),
-        "sku": product.variants[0].sku,
-        "brand": { "@type": "Brand", "name": product.vendor },
-        "offers": {
-          "@type": "Offer",
-          "price": product.variants[0].price,
-          "priceCurrency": product.variants[0].currency,
-          "availability": product.variants[0].inventory_quantity > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-          "url": window.location.href,
-          "seller": { "@type": "Organization", "name": shop }
-        }
-      };
-      insertSchemaToDOM(schemaData);
-    }
-
-    function insertSchemaToDOM(schemaData) {
-      const script = document.createElement("script");
-      script.type = "application/ld+json";
-      script.text = JSON.stringify(schemaData);
-      document.head.appendChild(script);
-      console.log("JSON-LD product schema inserted:", schemaData);
-    }
-
-    // Function to remove all relevant product schema
-    function removeProductSchema() {
-      const jsonLdScripts = document.querySelectorAll('script[type="application/ld+json"]');
-      jsonLdScripts.forEach((script) => {
-        try {
-          const schemaData = JSON.parse(script.textContent);
-          if (schemaData['@type'] === "Product") {
-            script.remove(); // Remove only the product-related schema
-            console.log("Product schema removed.");
-          }
-        } catch (error) {
-          console.error("Error parsing JSON-LD schema for removal:", error);
-        }
-      });
-    }
-
-    // Call the function to manage the schema
-    insertProductSchema();
+ alert('Hii, this is product script)
   `);
 });
 
