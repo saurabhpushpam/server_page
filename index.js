@@ -1938,6 +1938,632 @@ app.post("/update-state/:shopname/:isEnable", async (req, res) => {
 
 
 
+// // Endpoint to check the schema state
+// app.get("/check-state/:shopname/:schema", async (req, res) => {
+//   try {
+//     const shopName = req.params.shopname;
+//     const schemaKey = req.params.schema;
+//     const shop = await Shop.findOne({ shop: shopName });
+
+//     if (shop) {
+//       const schemaData = shop[schemaKey];
+
+//       if (schemaData !== undefined) {
+//         return res.status(200).json({ [schemaKey]: schemaData });
+//       } else {
+//         return res.status(404).json({ message: `${schemaKey} not found for this shop` });
+//       }
+//     } else {
+//       // If shop does not exist, you can return an error or create the shop with default values
+//       const newShop = new Shop({ shop: shopName });
+//       await newShop.save();
+//       return res.status(404).json({ message: "Shop not found, created new shop with default values." });
+//     }
+//   } catch (error) {
+//     console.error("Error fetching schema state:", error);
+//     res.status(500).json({ message: "Error fetching schema state" });
+//   }
+// });
+
+
+// Endpoint to check the schema state
+app.get("/check-state/:shopname", async (req, res) => {
+  try {
+    const shopName = req.params.shopname;
+    const shop = await Shop.findOne({ shop: shopName });
+
+    if (shop) {
+
+      return res.status(200).json({ shop });
+
+    } else {
+      // If shop does not exist, you can return an error or create the shop with default values
+      const newShop = new Shop({ shop: shopName });
+      await newShop.save();
+      return res.status(404).json({ message: "Shop not found, created new shop with default values." });
+    }
+  } catch (error) {
+    console.error("Error fetching schema state:", error);
+    res.status(500).json({ message: "Error fetching schema state" });
+  }
+});
+
+
+
+// Endpoint to update the schema state
+app.post("/update-state/:shopname/:schema/:value", async (req, res) => {
+  try {
+    const shopName = req.params.shopname;
+    const schemaKey = req.params.schema; // Get the schema key from params
+    const value = req.params.value; // Get the value to be updated from params
+
+    // Build the dynamic update object
+    const update = { $set: { [schemaKey]: value } }; // Use [schemaKey] to dynamically update the specific field
+
+    // Find the shop and update the schema field
+    const updatedShop = await Shop.findOneAndUpdate(
+      { shop: shopName }, // Find document by shopName
+      update,             // Dynamic field update
+      { new: true, upsert: false } // Return the updated document, don't create if not found
+    );
+
+    if (updatedShop) {
+      return res.status(200).json({ success: true, data: updatedShop });
+    } else {
+      return res.status(404).json({ message: "Shop not found" });
+    }
+  } catch (error) {
+    console.error("Error updating schema state:", error);
+    res.status(500).json({ message: "Error updating schema state" });
+  }
+});
+
+
+
+
+// app.get("/newschema-script.js", (req, res) => {
+//   res.set("Content-Type", "application/javascript");
+//   res.send(`
+//     const shop = window.location.hostname;
+
+//     async function insertSchemaBasedOnPage() {
+//       try {
+//         const tokenResponse = await fetch('https://server-page-xo9v.onrender.com/check-store?shop=' + shop);
+//         const tokenData = await tokenResponse.json();
+
+//         if (tokenData && tokenData.accessToken) {
+//           const accessToken = tokenData.accessToken;
+//           const pathParts = window.location.pathname.split("/");
+
+//           // Fetch the isEnabled state for all schemas
+//           const stateResponse = await fetch('https://server-page-xo9v.onrender.com/check-state/' + shop);
+//           const stateData = await stateResponse.json();
+
+//           // Identify the current page and inject the corresponding schema
+//           if (pathParts[1] === "products" && pathParts[2]) {
+//             const handle = pathParts[2];
+//             if (stateData.isEnabled == 'true') {
+//               await fetchProductAndInsertSchema(accessToken, shop, handle);
+//             } else {
+//               removeProductSchema();
+//               console.log("Product schema is disabled.");
+//             }
+//           } else if (pathParts[1] === "collections" && pathParts[2]) {
+//             const collectionHandle = pathParts[2];
+//             if (stateData.collection_isEnabled == 'true') {
+//               await fetchCollectionAndInsertSchema(accessToken, shop, collectionHandle);
+//             } else {
+//               removeCollectionSchema();
+//               console.log("Collection schema is disabled.");
+//             }
+//           } else if (pathParts[1] == "pages") {
+//             // Check for Breadcrumb, Article, etc.
+//             if (stateData.breadcrumb_isEnabled == 'true') {
+//               insertBreadcrumbSchema();
+//             }
+//             if (stateData.article_isEnabled == 'true') {
+//               insertArticleSchema();
+//             }
+//           } else if (pathParts[1] == "video") {
+//             if (stateData.video_isEnabled == 'true') {
+//               insertVideoSchema();
+//             }
+//           }
+
+//           // General schemas for all pages
+//           if (stateData.organization_isEnabled === 'true') {
+//             insertOrganizationSchema();
+//           }
+//           if (stateData.searchbox_isEnabled === 'true') {
+//             insertSearchBoxSchema();
+//           }
+//           if (stateData.recipe_isEnabled === 'true') {
+//             insertRecipeSchema();
+//           }
+
+//         } else {
+//           console.warn("Access token not found for this shop.");
+//         }
+//       } catch (error) {
+//         console.error("Error fetching schema data:", error);
+//       }
+//     }
+
+//     // Product Schema
+//     async function fetchProductAndInsertSchema(accessToken, shop, handle) {
+//       try {
+//         const productResponse = await fetch('https://' + shop + '/admin/api/2024-04/products.json?handle=' + handle, {
+//           method: "GET",
+//           headers: {
+//             "X-Shopify-Access-Token": accessToken,
+//             "Content-Type": "application/json",
+//           }
+//         });
+//         const productData = await productResponse.json();
+
+//         if (productData.products && productData.products.length > 0) {
+//           const product = productData.products[0];
+//           insertProductSchemaData(product, shop);
+//         } else {
+//           console.warn("Product not found.");
+//         }
+//       } catch (error) {
+//         console.error("Error fetching product data:", error);
+//       }
+//     }
+
+//     // Collection Schema
+//     async function fetchCollectionAndInsertSchema(accessToken, shop, handle) {
+//       try {
+//         const collectionResponse = await fetch('https://' + shop + '/admin/api/2024-04/collections.json?handle=' + handle, {
+//           method: "GET",
+//           headers: {
+//             "X-Shopify-Access-Token": accessToken,
+//             "Content-Type": "application/json",
+//           }
+//         });
+//         const collectionData = await collectionResponse.json();
+
+//         if (collectionData.collections && collectionData.collections.length > 0) {
+//           const collection = collectionData.collections[0];
+//           insertCollectionSchemaData(collection, shop);
+//         } else {
+//           console.warn("Collection not found.");
+//         }
+//       } catch (error) {
+//         console.error("Error fetching collection data:", error);
+//       }
+//     }
+
+//     // Insert various schemas
+
+//     function insertProductSchemaData(product, shop) {
+//       const schemaData = {
+//         "@context": "https://schema.org/",
+//         "@type": "Product",
+//         "name": product.title,
+//         "image": product.images.map(image => image.src),
+//         "description": product.body_html.replace(/<[^>]*>/g, ""),
+//         "sku": product.variants[0].sku,
+//         "brand": { "@type": "Brand", "name": product.vendor },
+//         "offers": {
+//           "@type": "Offer",
+//           "price": product.variants[0].price,
+//           "priceCurrency": product.variants[0].currency,
+//           "availability": product.variants[0].inventory_quantity > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+//           "url": window.location.href,
+//           "seller": { "@type": "Organization", "name": shop }
+//         }
+//       };
+//       insertSchemaToDOM(schemaData);
+//     }
+
+//     function insertCollectionSchemaData(collection, shop) {
+//       const schemaData = {
+//         "@context": "https://schema.org/",
+//         "@type": "Collection",
+//         "name": collection.title,
+//         "description": collection.body_html.replace(/<[^>]*>/g, ""),
+//         "url": window.location.href
+//       };
+//       insertSchemaToDOM(schemaData);
+//     }
+
+//     function insertOrganizationSchema() {
+//       const schemaData = {
+//         "@context": "https://schema.org/",
+//         "@type": "Organization",
+//         "name": shop,
+//         "url": window.location.href
+//       };
+//       insertSchemaToDOM(schemaData);
+//     }
+
+//     function insertBreadcrumbSchema() {
+//       const schemaData = {
+//         "@context": "https://schema.org/",
+//         "@type": "BreadcrumbList",
+//         "itemListElement": [
+//           {
+//             "@type": "ListItem",
+//             "position": 1,
+//             "name": "Home",
+//             "item": window.location.origin
+//           },
+//           {
+//             "@type": "ListItem",
+//             "position": 2,
+//             "name": "Page",
+//             "item": window.location.href
+//           }
+//         ]
+//       };
+//       insertSchemaToDOM(schemaData);
+//     }
+
+//     function insertVideoSchema() {
+//       const schemaData = {
+//         "@context": "https://schema.org/",
+//         "@type": "VideoObject",
+//         "name": "Sample Video",
+//         "description": "This is a sample video description",
+//         "thumbnailUrl": "https://example.com/video-thumbnail.jpg",
+//         "uploadDate": "2024-01-01",
+//         "contentUrl": window.location.href
+//       };
+//       insertSchemaToDOM(schemaData);
+//     }
+
+//     function insertArticleSchema() {
+//       const schemaData = {
+//         "@context": "https://schema.org/",
+//         "@type": "Article",
+//         "headline": "Sample Article",
+//         "author": "Author Name",
+//         "datePublished": "2024-01-01",
+//         "url": window.location.href
+//       };
+//       insertSchemaToDOM(schemaData);
+//     }
+
+//     function insertSearchBoxSchema() {
+//       const schemaData = {
+//         "@context": "https://schema.org/",
+//         "@type": "WebSite",
+//         "url": window.location.href,
+//         "potentialAction": {
+//           "@type": "SearchAction",
+//           "target": window.location.origin + "/search?q={search_term_string}",
+//           "query-input": "required name=search_term_string"
+//         }
+//       };
+//       insertSchemaToDOM(schemaData);
+//     }
+
+//     function insertSiteNameSchema() {
+//       const schemaData = {
+//         "@context": "https://schema.org/",
+//         "@type": "WebSite",
+//         "name": shop,
+//         "url": window.location.href
+//       };
+//       insertSchemaToDOM(schemaData);
+//     }
+
+//     function insertRecipeSchema() {
+//       const schemaData = {
+//         "@context": "https://schema.org/",
+//         "@type": "Recipe",
+//         "name": "Sample Recipe",
+//         "recipeIngredient": ["Ingredient 1", "Ingredient 2"],
+//         "recipeInstructions": ["Step 1", "Step 2"],
+//         "url": window.location.href
+//       };
+//       insertSchemaToDOM(schemaData);
+//     }
+
+//     // Helper to insert schema data to DOM
+//     function insertSchemaToDOM(schemaData) {
+//       const script = document.createElement("script");
+//       script.type = "application/ld+json";
+//       script.text = JSON.stringify(schemaData);
+//       document.head.appendChild(script);
+//       console.log("JSON-LD schema inserted:", schemaData);
+//     }
+
+//     // Function to remove all relevant product schema
+//     function removeProductSchema() {
+//       removeSchemaByType("Product");
+//     }
+
+//     function removeCollectionSchema() {
+//       removeSchemaByType("Collection");
+//     }
+
+//     function removeSchemaByType(schemaType) {
+//       const jsonLdScripts = document.querySelectorAll('script[type="application/ld+json"]');
+//       jsonLdScripts.forEach((script) => {
+//         try {
+//           const schemaData = JSON.parse(script.textContent);
+//           if (schemaData['@type'] === schemaType) {
+//             script.remove(); // Remove only the schema related to the given type
+//             console.log(schemaType + " schema removed.");
+//           }
+//         } catch (error) {
+//           console.error("Error parsing JSON-LD schema:", error);
+//         }
+//       });
+//     }
+
+//     // Initialize schema insertion
+//     insertSchemaBasedOnPage();
+//   `);
+// });
+
+
+
+
+
+app.get("/newschema-script.js", (req, res) => {
+  res.set("Content-Type", "application/javascript");
+  res.send(`
+    const shop = window.location.hostname;
+
+    async function insertSchemaBasedOnPage() {
+      try {
+        const tokenResponse = await fetch('https://server-page-xo9v.onrender.com/check-store?shop=' + shop);
+        const tokenData = await tokenResponse.json();
+
+        if (tokenData && tokenData.accessToken) {
+          const accessToken = tokenData.accessToken;
+          const pathParts = window.location.pathname.split("/");
+
+          // Fetch the isEnabled state for all schemas
+          const stateResponse = await fetch('https://server-page-xo9v.onrender.com/check-state/' + shop);
+          const stateData = await stateResponse.json();
+
+          // Identify the current page and inject the corresponding schema
+          if (pathParts[1] === "products" && pathParts[2]) {
+            const handle = pathParts[2];
+            if (stateData.isEnabled == 'true') {
+              await fetchProductAndInsertSchema(accessToken, shop, handle);
+            } else {
+              removeProductSchema();
+              console.log("Product schema is disabled.");
+            }
+          } else if (pathParts[1] === "collections" && pathParts[2]) {
+            const collectionHandle = pathParts[2];
+            if (stateData.collection_isEnabled == 'true') {
+              await fetchCollectionAndInsertSchema(accessToken, shop, collectionHandle);
+            } else {
+              removeCollectionSchema();
+              console.log("Collection schema is disabled.");
+            }
+          } else if (pathParts[1] == "pages") {
+            // Check for Breadcrumb, Article, etc.
+            if (stateData.breadcrumb_isEnabled == 'true') {
+              insertBreadcrumbSchema();
+            } else {
+              removeBreadcrumbSchema();
+            }
+            if (stateData.article_isEnabled == 'true') {
+              insertArticleSchema();
+            } else {
+              removeArticleSchema();
+            }
+          } else if (pathParts[1] == "video") {
+            if (stateData.video_isEnabled == 'true') {
+              insertVideoSchema();
+            } else {
+              removeVideoSchema();
+            }
+          }
+
+          // General schemas for all pages
+          if (stateData.organization_isEnabled === 'true') {
+            insertOrganizationSchema();
+          } else {
+            removeOrganizationSchema();
+          }
+          if (stateData.searchbox_isEnabled === 'true') {
+            insertSearchBoxSchema();
+          } else {
+            removeSearchBoxSchema();
+          }
+          if (stateData.recipe_isEnabled === 'true') {
+            insertRecipeSchema();
+          } else {
+            removeRecipeSchema();
+          }
+
+        } else {
+          console.warn("Access token not found for this shop.");
+        }
+      } catch (error) {
+        console.error("Error fetching schema data:", error);
+      }
+    }
+
+    // Functions to insert various schemas
+
+    function insertProductSchemaData(product, shop) {
+      const schemaData = {
+        "@context": "https://schema.org/",
+        "@type": "Product",
+        "name": product.title,
+        "image": product.images.map(image => image.src),
+        "description": product.body_html.replace(/<[^>]*>/g, ""),
+        "sku": product.variants[0].sku,
+        "brand": { "@type": "Brand", "name": product.vendor },
+        "offers": {
+          "@type": "Offer",
+          "price": product.variants[0].price,
+          "priceCurrency": product.variants[0].currency,
+          "availability": product.variants[0].inventory_quantity > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+          "url": window.location.href,
+          "seller": { "@type": "Organization", "name": shop }
+        }
+      };
+      insertSchemaToDOM(schemaData);
+    }
+
+    function insertCollectionSchemaData(collection, shop) {
+      const schemaData = {
+        "@context": "https://schema.org/",
+        "@type": "Collection",
+        "name": collection.title,
+        "description": collection.body_html.replace(/<[^>]*>/g, ""),
+        "url": window.location.href
+      };
+      insertSchemaToDOM(schemaData);
+    }
+
+    function insertOrganizationSchema() {
+      const schemaData = {
+        "@context": "https://schema.org/",
+        "@type": "Organization",
+        "name": shop,
+        "url": window.location.href
+      };
+      insertSchemaToDOM(schemaData);
+    }
+
+    function insertBreadcrumbSchema() {
+      const schemaData = {
+        "@context": "https://schema.org/",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": window.location.origin
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Page",
+            "item": window.location.href
+          }
+        ]
+      };
+      insertSchemaToDOM(schemaData);
+    }
+
+    function insertVideoSchema() {
+      const schemaData = {
+        "@context": "https://schema.org/",
+        "@type": "VideoObject",
+        "name": "Sample Video",
+        "description": "This is a sample video description",
+        "thumbnailUrl": "https://example.com/video-thumbnail.jpg",
+        "uploadDate": "2024-01-01",
+        "contentUrl": window.location.href
+      };
+      insertSchemaToDOM(schemaData);
+    }
+
+    function insertArticleSchema() {
+      const schemaData = {
+        "@context": "https://schema.org/",
+        "@type": "Article",
+        "headline": "Sample Article",
+        "author": "Author Name",
+        "datePublished": "2024-01-01",
+        "url": window.location.href
+      };
+      insertSchemaToDOM(schemaData);
+    }
+
+    function insertSearchBoxSchema() {
+      const schemaData = {
+        "@context": "https://schema.org/",
+        "@type": "WebSite",
+        "url": window.location.href,
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": window.location.origin + "/search?q={search_term_string}",
+          "query-input": "required name=search_term_string"
+        }
+      };
+      insertSchemaToDOM(schemaData);
+    }
+
+    function insertRecipeSchema() {
+      const schemaData = {
+        "@context": "https://schema.org/",
+        "@type": "Recipe",
+        "name": "Sample Recipe",
+        "recipeIngredient": ["Ingredient 1", "Ingredient 2"],
+        "recipeInstructions": ["Step 1", "Step 2"],
+        "url": window.location.href
+      };
+      insertSchemaToDOM(schemaData);
+    }
+
+    // Functions to remove schemas by type
+    function removeProductSchema() {
+      removeSchemaByType("Product");
+    }
+
+    function removeCollectionSchema() {
+      removeSchemaByType("Collection");
+    }
+
+    function removeOrganizationSchema() {
+      removeSchemaByType("Organization");
+    }
+
+    function removeBreadcrumbSchema() {
+      removeSchemaByType("BreadcrumbList");
+    }
+
+    function removeVideoSchema() {
+      removeSchemaByType("VideoObject");
+    }
+
+    function removeArticleSchema() {
+      removeSchemaByType("Article");
+    }
+
+    function removeSearchBoxSchema() {
+      removeSchemaByType("WebSite");
+    }
+
+    function removeRecipeSchema() {
+      removeSchemaByType("Recipe");
+    }
+
+    function removeSchemaByType(schemaType) {
+      const jsonLdScripts = document.querySelectorAll('script[type="application/ld+json"]');
+      jsonLdScripts.forEach((script) => {
+        try {
+          const schemaData = JSON.parse(script.textContent);
+          if (schemaData['@type'] === schemaType) {
+            script.remove(); // Remove only the schema related to the given type
+            console.log(schemaType + " schema removed.");
+          }
+        } catch (error) {
+          console.error("Error parsing JSON-LD schema:", error);
+        }
+      });
+    }
+
+    // Helper to insert schema data to DOM
+    function insertSchemaToDOM(schemaData) {
+      const script = document.createElement("script");
+      script.type = "application/ld+json";
+      script.text = JSON.stringify(schemaData);
+      document.head.appendChild(script);
+      console.log("JSON-LD schema inserted:", schemaData);
+    }
+
+    // Initialize schema insertion/removal
+    insertSchemaBasedOnPage();
+  `);
+});
+
+
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
