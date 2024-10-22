@@ -2408,13 +2408,13 @@ app.get("/newschema-script.js", (req, res) => {
         "Shipping_Country": "Bharat",
         // "image": product.images.map(image => image.src),       
         "description": product.body_html,
-        "sku": product.variants[0].sku,
+        // "sku": product.variants[0].sku,
         "brand": { "@type": "Brand", "name": product.vendor },
         "offers": {
           "@type": "Offer",
-          "price": product.variants[0].price,
-          "priceCurrency": product.variants[0].currency,
-          "availability": product.variants[0].inventory_quantity > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+          // "price": product.variants[0].price,
+          // "priceCurrency": product.variants[0].currency,
+          // "availability": product.variants[0].inventory_quantity > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
           "url": window.location.href,
           "seller": { "@type": "Organization", "name": shop }
         }
