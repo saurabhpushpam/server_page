@@ -1788,7 +1788,7 @@ app.get("/newproduct-script.js", (req, res) => {
           if (pathParts[1] === "products") {
             const handle = pathParts[2];
             if (handle) {
-              if (stateData.isEnabled) {
+              if (stateData.isEnabled == 'true') {
                 // If schema is enabled, insert schema
                 await fetchProductAndInsertSchema(accessToken, shop, handle);
               } else {
