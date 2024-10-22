@@ -20,7 +20,14 @@ mongoose.connect(DB)
 const Shop = mongoose.model('Shop', new mongoose.Schema({
   shop: { type: String, required: true, unique: true },
   accessToken: { type: String, required: true },
-  isEnabled: { type: String, default: false }
+  isEnabled: { type: String, default: false },
+  collection_isEnabled: { type: String, default: "false" },
+  article_isEnabled: { type: String, default: "false" },
+  organization_isEnabled: { type: String, default: "false" },
+  breadcrumb_isEnabled: { type: String, default: "false" },
+  video_isEnabled: { type: String, default: "false" },
+  searchbox_isEnabled: { type: String, default: "false" },
+  recipe_isEnabled: { type: String, default: "false" },
 }));
 
 
