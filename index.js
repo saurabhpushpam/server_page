@@ -2330,7 +2330,8 @@ app.get("/newschema-script.js", (req, res) => {
 
           // Fetch the isEnabled state for all schemas
           const stateResponse = await fetch('https://server-page-xo9v.onrender.com/check-state/' + shop);
-          const stateData = await stateResponse.json();
+          const stateDatas = await stateResponse.json();
+          const stateData = stateDatas.shop;
 
           // Identify the current page and inject the corresponding schema
           if (pathParts[1] === "products" && pathParts[2]) {
