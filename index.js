@@ -2337,7 +2337,8 @@ app.get("/newschema-script.js", (req, res) => {
           if (pathParts[1] === "products" && pathParts[2]) {
             const handle = pathParts[2];
             if (stateData.isEnabled == 'true') {
-              await fetchProductAndInsertSchema(accessToken, shop, handle);
+            await insertProductSchemaData(shop, handle);
+              // await fetchProductAndInsertSchema(accessToken, shop, handle);
             } else {
               removeProductSchema();
               console.log("Product schema is disabled.");
@@ -2345,7 +2346,8 @@ app.get("/newschema-script.js", (req, res) => {
           } else if (pathParts[1] === "collections" && pathParts[2]) {
             const collectionHandle = pathParts[2];
             if (stateData.collection_isEnabled == 'true') {
-              await fetchCollectionAndInsertSchema(accessToken, shop, collectionHandle);
+            insertCollectionSchemaData(collectionHandle, shop);
+              // await fetchCollectionAndInsertSchema(accessToken, shop, collectionHandle);
             } else {
               removeCollectionSchema();
               console.log("Collection schema is disabled.");
