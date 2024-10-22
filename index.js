@@ -1901,7 +1901,7 @@ app.get("/product-script.js", (req, res) => {
 app.get("/newproduct-script.js", (req, res) => {
   res.set("Content-Type", "application/javascript");
   res.send(`
- alert('Hii, this is product script)
+ alert('Hii, this is product script');
   `);
 });
 
