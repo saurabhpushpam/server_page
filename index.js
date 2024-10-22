@@ -2406,8 +2406,8 @@ app.get("/newschema-script.js", (req, res) => {
         "name": product.title,
         "shipping_fee": 900,
         "Shipping_Country": "Bharat",
-        "image": product.images.map(image => image.src),       
-        "description": product.body_html.replace(/<[^>]*>/g, ""),
+        // "image": product.images.map(image => image.src),       
+        "description": product.body_html,
         "sku": product.variants[0].sku,
         "brand": { "@type": "Brand", "name": product.vendor },
         "offers": {
@@ -2427,7 +2427,7 @@ app.get("/newschema-script.js", (req, res) => {
         "@context": "https://schema.org/",
         "@type": "Collection",
         "name": collection.title,
-        "description": collection.body_html.replace(/<[^>]*>/g, ""),
+        "description": collection.body_html,
         "url": window.location.href
       };
       insertSchemaToDOM(schemaData);
