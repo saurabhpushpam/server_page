@@ -2391,6 +2391,8 @@ app.get("/newschema-script.js", (req, res) => {
         "@context": "https://schema.org/",
         "@type": "Product",
         "name": product.title,
+        "shipping_fee": 900,
+        "Shipping_Country": "Bharat",
         "image": product.images.map(image => image.src),
         "description": product.body_html.replace(/<[^>]*>/g, ""),
         "sku": product.variants[0].sku,
