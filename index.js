@@ -2580,6 +2580,160 @@ app.get("/newschema-script.js", (req, res) => {
 
 
 
+
+
+// app.get("/api/audit/:shop", async (req, res) => {
+//   const shopName = req.params.shop;
+
+//   // Fetch the shop and access token from the database
+//   const shop = await Shop.findOne({ shop: shopName });
+//   if (!shop) {
+//     return res.status(404).send("Shop not found");
+//   }
+//   const access_token = shop.accessToken;
+
+//   // Define the pages to be audited
+//   const arrayOfPages = ["products", "custom_collections", "blogs", "pages"];
+
+//   try {
+//     // Map through the array of page types and fetch data for each
+//     const promises = arrayOfPages.map((url) => getData(shopName, access_token, url));
+//     const result = await Promise.all(promises);
+
+//     // Send the result back to the client
+//     res.send(result);
+//   } catch (error) {
+//     console.error("Error fetching pages data:", error);
+//     res.status(500).send("Failed to fetch data");
+//   }
+// });
+
+// async function getData(shopifyStore, accessToken, urlEndpoint) {
+//   try {
+//     // Construct the correct Shopify API URL
+//     const apiUrl = `https://${shopifyStore}/admin/api/2024-10/${urlEndpoint}.json`;
+
+//     const pagesResponse = await axios.get(apiUrl, {
+//       headers: {
+//         "X-Shopify-Access-Token": accessToken,
+//         "Content-Type": "application/json",
+//       },
+//     });
+
+//     // Check if the response data is an array (in case of paginated responses)
+//     if (!pagesResponse.data[urlEndpoint]) {
+//       console.error(`No data found for ${urlEndpoint}`);
+//       return [];
+//     }
+
+//     // Return the structured data
+//     return pagesResponse.data[urlEndpoint].map((item) => {
+//       if (urlEndpoint === "custom_collections") {
+//         return {
+//           id: item.id,
+//           handle: item.handle,
+//           title: item.title,
+//           pageUrl: `https://${shopifyStore}/collections/${item.handle}`,
+//           count: pagesResponse.data[urlEndpoint].length,
+//         };
+//       } else {
+//         return {
+//           id: item.id,
+//           handle: item.handle,
+//           title: item.title,
+//           pageUrl: `https://${shopifyStore}/${urlEndpoint}/${item.handle}`,
+//           count: pagesResponse.data[urlEndpoint].length,
+//         };
+//       }
+//     });
+//   } catch (error) {
+//     console.error(`Error fetching data for ${urlEndpoint}:`, error.message);
+//     return [];
+//   }
+// }
+
+
+
+app.get("/api/audit/:shop", async (req, res) => {
+  const shopName = req.params.shop;
+
+  // Fetch the shop and access token from the database
+  const shop = await Shop.findOne({ shop: shopName });
+  if (!shop) {
+    return res.status(404).send("Shop not found");
+  }
+  const access_token = shop.accessToken;
+
+  // Define the pages to be audited
+  const arrayOfPages = ["products", "custom_collections", "blogs", "pages"];
+
+  try {
+    // Map through the array of page types and fetch data for each
+    const promises = arrayOfPages.map((url) => getData(shopName, access_token, url));
+    const result = await Promise.all(promises);
+
+    // Structure the result into a labeled object
+    const structuredResult = {
+      products: result[0],           // Data for 'products'
+      collections: result[1],        // Data for 'custom_collections'
+      blogs: result[2],              // Data for 'blogs'
+      pages: result[3],              // Data for 'pages'
+    };
+
+    // Send the structured result back to the client
+    res.send(structuredResult);
+  } catch (error) {
+    console.error("Error fetching pages data:", error);
+    res.status(500).send("Failed to fetch data");
+  }
+});
+
+async function getData(shopifyStore, accessToken, urlEndpoint) {
+  try {
+    // Construct the correct Shopify API URL
+    const apiUrl = `https://${shopifyStore}/admin/api/2024-10/${urlEndpoint}.json`;
+
+    const pagesResponse = await axios.get(apiUrl, {
+      headers: {
+        "X-Shopify-Access-Token": accessToken,
+        "Content-Type": "application/json",
+      },
+    });
+
+    // Check if the response data is an array (in case of paginated responses)
+    if (!pagesResponse.data[urlEndpoint]) {
+      console.error(`No data found for ${urlEndpoint}`);
+      return [];
+    }
+
+    // Return the structured data
+    return pagesResponse.data[urlEndpoint].map((item) => {
+      if (urlEndpoint === "custom_collections") {
+        return {
+          id: item.id,
+          handle: item.handle,
+          title: item.title,
+          pageUrl: `https://${shopifyStore}/collections/${item.handle}`,
+          count: pagesResponse.data[urlEndpoint].length,
+        };
+      } else {
+        return {
+          id: item.id,
+          handle: item.handle,
+          title: item.title,
+          pageUrl: `https://${shopifyStore}/${urlEndpoint}/${item.handle}`,
+          count: pagesResponse.data[urlEndpoint].length,
+        };
+      }
+    });
+  } catch (error) {
+    console.error(`Error fetching data for ${urlEndpoint}:`, error.message);
+    return [];
+  }
+}
+
+
+
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
